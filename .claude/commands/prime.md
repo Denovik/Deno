@@ -7,6 +7,8 @@
 1. Lies `CLAUDE.md` vollständig
 2. Lies alle Dateien in `context/` durch
 3. Wenn `context/import/` Dateien enthält, schau auch dort rein
+4. `HISTORY.md`: CEO-GPT-Logbuch (was wurde gebaut, wann, von wem)
+5. `docs/_index.md`: Doku-Routing-Index (hier findest du die passenden Dokus)
 
 ## Zusammenfassung an den Geschäftsführer
 

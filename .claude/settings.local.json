@@ -6,7 +6,13 @@
       "Bash(git config *)",
       "Bash(git commit -m ' *)",
       "Bash(gh auth *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(ls /Users/dennisgluck/Desktop/CLAUDE/)",
+      "Bash(git --version)",
+      "Bash(claude --version)",
+      "Bash(cp /Users/dennisgluck/Desktop/CLAUDE/absicherung/templates/gitignore /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/.gitignore && cat /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/.gitignore | head -5)",
+      "Bash(mkdir -p /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/.claude/commands)",
+      "Bash(cp /Users/dennisgluck/Desktop/CLAUDE/absicherung/commands/commit.md /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/.claude/commands/commit.md)"
     ]
   }
 }
