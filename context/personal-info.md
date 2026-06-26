@@ -15,27 +15,33 @@
 
 ## Wer du bist
 
-**Name:** <Vorname>
-**Rolle:** <Geschäftsführer, Gründer, Operations, Marketing, etc.>
+**Name:** Dennis
+**Alter:** 27
+**Rolle:** Gründer und Alleinverantwortlicher des Jarvis-Systems
 
-<Ein bis zwei Sätze, was du im Business tust.>
+Dennis ist Vollzeit-Angestellter im Vodafone-Shop als Verkäufer und baut parallel dazu ein vollautomatisiertes KI-Einkommenssystem auf. Das Business ist sein Nebenprojekt mit dem Ziel, irgendwann den Hauptjob zu ersetzen.
 
 ## Was du machst
 
-<Was sind deine Hauptverantwortungen? Wo geht der Großteil deiner Zeit hin? Welche Entscheidungen landen auf deinem Tisch?>
+- Aufbau des gesamten Systems: KI-Automatisierung, Content-Strategie, Plattform-Setup
+- Alle Entscheidungen: Nischenwahl, Tool-Auswahl, Monetarisierungsstrategie
+- Solo — kein Team, keine Unterstützung von außen
 
 ## Was du nicht machst
 
-<Was liegt bei anderen im Team oder ist explizit nicht deine Baustelle?>
+- Manuelles Erstellen von Content (das soll das System übernehmen)
+- Unnötige Ausgaben — Budget ist sehr begrenzt
 
 ## Wofür du diesen CEO-GPT nutzen willst
 
-<Was wäre am wertvollsten? Analysen, Content, Strategie, Operations, Automatisierung, etwas anderes?>
+- **System aufbauen:** Schritt-für-Schritt-Anleitung, welche Tools, welche Nische, welche Strategie
+- **Entscheidungen treffen:** Was priorisieren? Wo anfangen? Was ist realistisch?
+- **Automatisierungen umsetzen:** Konkrete Umsetzung der KI-Content-Pipeline
+- **Fortschritt tracken:** Einnahmen, Follower, Conversion im Blick behalten
 
 ## Hintergrund
 
-<Etwas zu deinen Skills, deinem Arbeitsstil, deinen Vorlieben? Eher technisch oder nicht? Allein oder im Team?>
-
----
-
-_Halt das knapp. Genug, damit dein Mitarbeiter deine Lage versteht, keine ausführliche Biografie._
+- Kein technischer Hintergrund, kein Erfahrung in Content oder Affiliate-Marketing
+- Lernbereit und motiviert, viel Zeit pro Woche verfügbar
+- Arbeitet allein, braucht klare und umsetzbare Anleitung
+- Finanzieller Druck vorhanden — erstes Einkommen hat Priorität

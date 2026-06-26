@@ -18,11 +18,18 @@ Diese Datei ist die Anleitung für deinen Mitarbeiter. Sie wird zu Beginn jeder 
 
 ## Was das hier ist
 
-Das hier ist dein **CEO-GPT**. Hier baust du dir deinen eigenen Mitarbeiter auf. Stück für Stück, in deinem Tempo.
-
-Am Anfang ist das CEO-GPT eine leere Vorlage. Du fütterst ihn mit Kontext über dich und dein Business. Du baust ihm eine Stimme. Du gibst ihm eine Hand, mit der er Dinge erledigt. Mit jedem Schritt wird der Mitarbeiter brauchbarer und nimmt dir mehr Arbeit ab.
+Das ist der **CEO-GPT von Dennis** — ein vollautomatisiertes KI-System, das Content auf TikTok, Instagram und YouTube erstellt und damit Affiliate-Einnahmen generiert. Ziel: 2.000 €/Monat passives Einkommen bis Ende 2026.
 
 Du musst nicht technisch sein. Du musst nichts programmieren können. Du beschreibst, was du brauchst, und dein Mitarbeiter setzt es um.
+
+---
+
+## Kontext-Zusammenfassung
+
+**Business:** Vollautomatisierte KI-Content-Pipeline für TikTok, Instagram und YouTube — Einnahmen primär über Plattform-Monetarisierung (Views/Reichweite)
+**Rolle:** Dennis — Gründer und Alleinverantwortlicher, baut das System solo auf
+**Aktueller Fokus:** Nischenwahl + erste Content-Automatisierung aufbauen
+**Wichtigste Kennzahl:** Monatliche Einnahmen (Ziel: 2.000 €/Monat bis Dez 2026)
 
 ---
 

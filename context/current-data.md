@@ -13,32 +13,38 @@
 
 ---
 
-**Stand:** <TT.MM.JJJJ>
+**Stand:** 26.06.2026
 
 ## Kennzahlen
 
-<Tabelle mit deinen Kern-Zahlen. Umsatz, Kunden, Pipeline, Conversion, was du eben verfolgst.>
-
 | Kennzahl | Wert | Notiz |
 |---|---|---|
-| <Name> | <Wert> | <Kontext> |
-| <Name> | <Wert> | <Kontext> |
+| Monatliche Einnahmen | 0 € | Aufbauphase, noch kein Einkommen |
+| TikTok Follower | unbekannt | Account vorhanden, kein Content bisher |
+| Instagram Follower | unbekannt | Account vorhanden, kein Content bisher |
+| YouTube Abonnenten | unbekannt | Account vorhanden, kein Content bisher |
+| Plattform-Monetarisierung | nicht aktiv | Follower-Schwellen noch nicht erreicht |
+| Monatliches Ziel | 2.000 € | Bis Dezember 2026 |
 
 ## Stand zur Strategie
 
-<Wie weit bist du am Nordstern aus `strategy.md`? Lücke zum Ziel konkret beziffern, wenn möglich.>
+- Nische: noch nicht gewählt
+- Content-Pipeline: noch nicht aufgebaut
+- Erste Einnahmen: noch nicht erzielt
+- Lücke zum Ziel: 2.000 €/Monat
 
 ## Laufendes
 
-<Aktive Projekte, jüngste Wins, Blocker, Sachen in Bewegung.>
+- CEO-GPT aufgesetzt (Absicherung + Kontext installiert)
+- Nächster Schritt: Nischenwahl und erste Content-Strategie
 
 ## Team-Auslastung
 
-<Bist du dünn besetzt, am Einstellen, am Auslagern? Wie ist die Lastverteilung?>
+Solo. Dennis trägt alles allein. Zeit ist vorhanden, Budget ist sehr begrenzt.
 
 ## Datenquellen
 
-<Woher kommen die Zahlen oben? Stripe, Google Analytics, Excel, CRM, Bauchgefühl?>
+Aktuell keine automatischen Quellen. Zahlen werden von Hand gepflegt.
 
 ---
 

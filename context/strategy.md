@@ -15,27 +15,33 @@
 
 ## Aktuelle Phase
 
-<Welches Quartal, welches Jahr, welcher Zeitraum? Was ist das Großbild gerade?>
+Q3 2026 — Aufbauphase. Alles wird von Grund auf gestartet. Kein laufendes Einkommen, kein bestehendes System. Ziel: in 6 Monaten ein stabiles Nebeneinkommen von 2.000 €/Monat.
 
 ## Nordstern
 
-<Das eine Ziel, das alles andere überragt. Was wäre der größte Wurf in diesem Zeitraum?>
+**2.000 € monatliches Nettoeinkommen durch vollautomatisierten KI-Content bis Ende 2026.**
 
 ## Strategische Hebel
 
-<Drei bis fünf Hebel, an denen du gerade ziehst, um den Nordstern zu erreichen.>
-
-1. <Hebel>
-2. <Hebel>
-3. <Hebel>
+1. **Nische wählen** — Eine profitable, wachsende Nische mit Affiliate-Potential identifizieren (TikTok-first)
+2. **Content-Automatisierung aufbauen** — KI-Pipeline für Video/Post-Erstellung, die ohne tägliche Handarbeit läuft
+3. **Plattform-Monetarisierung aktivieren** — TikTok Creator Fund, YouTube AdSense und Instagram Monetarisierung freischalten (Follower-Schwellen erreichen)
+4. **Plattform-Reichweite aufbauen** — TikTok als Priorität, Instagram und YouTube parallel
+5. **System skalieren** — Was funktioniert, replizieren und ausbauen
 
 ## Wie Erfolg aussieht
 
-<Wenn die nächsten drei bis sechs Monate gut laufen, was ist dann anders?>
+In 6 Monaten (Dezember 2026):
+- Mindestens 2.000 € Einnahmen pro Monat durch Affiliate oder digitale Produkte
+- Vollautomatisierte Content-Pipeline läuft ohne tägliche manuelle Eingriffe
+- Bestehendes Follower-Wachstum auf mindestens einer Plattform sichtbar
 
 ## Offene Fragen
 
-<Wo bist du noch unsicher? Welche Entscheidungen stehen an?>
+- Welche Nische ist am profitabelsten und realistisch mit Automatisierung bedienbar?
+- Welche kostenlosen oder günstigen KI-Tools eignen sich für die Content-Pipeline?
+- Wie schnell kann mit Affiliate-Marketing erstes Einkommen erzielt werden?
+- TikTok vs. YouTube — wo sollte der erste Fokus liegen?
 
 ---
 
