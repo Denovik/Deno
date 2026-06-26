@@ -1,0 +1,7 @@
+# API-Keys und Zugänge — niemals committen
+.env
+
+# System-Dateien
+.DS_Store
+__pycache__/
+*.pyc
