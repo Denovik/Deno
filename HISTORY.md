@@ -8,6 +8,18 @@
 
 ---
 
+## 2026-06-27
+
+### Jarvis Content Bot implementiert
+
+- Alle 8 Bot-Dateien erstellt unter `scripts/jarvis/`
+- Skript-Generator (Claude API), Stimme (ElevenLabs), Stock-Video (Pexels), Video-Builder (MoviePy)
+- Poster für YouTube, Instagram und TikTok
+- Haupt-Orchestrator `run.py` mit `--dry-run`, `--once`, `--count` Flags
+- Dry-run erfolgreich: alle Module importieren, Ablauf startet sauber
+- CLAUDE.md und .env aktualisiert mit neuen Keys und Jarvis-Struktur
+- Nächster Schritt: Anthropic-Guthaben aufladen, dann erster echter Lauf
+
 ## YYYY-MM-DD
 
 ### Erstes Setup

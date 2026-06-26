@@ -20,7 +20,7 @@
 | Kennzahl | Wert | Notiz |
 |---|---|---|
 | Monatliche Einnahmen | 0 € | Aufbauphase, noch kein Einkommen |
-| TikTok Follower | unbekannt | Account vorhanden, kein Content bisher |
+| TikTok Follower | 1.701 | Beste Ausgangsbasis, Priorität 1 |
 | Instagram Follower | unbekannt | Account vorhanden, kein Content bisher |
 | YouTube Abonnenten | unbekannt | Account vorhanden, kein Content bisher |
 | Plattform-Monetarisierung | nicht aktiv | Follower-Schwellen noch nicht erreicht |
