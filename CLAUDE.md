@@ -86,7 +86,11 @@ Wir bauen den Mitarbeiter in Teilen auf. Jeder Teil ist für sich nützlich, und
 │   ├── personal-info.md     # Wer du bist, deine Rolle
 │   ├── strategy.md          # Aktuelle Prioritäten und Ziele
 │   ├── current-data.md      # Wichtige Zahlen und Lage
+│   ├── group/
+│   │   └── key-metrics.md   # Aktuelle Kennzahlen (automatisch aus data/data.db)
 │   └── import/              # Dokumente reinwerfen für Mitarbeiter-Analyse
+├── data/
+│   └── data.db              # SQLite-Datenbank, alle Kennzahlen als Tagesstände
 ├── module-installs/         # Fähigkeiten zum Einrichten
 ├── plans/                   # Pläne aus /create-plan
 ├── outputs/                 # Fertige Arbeit, Reports, Analysen
@@ -105,7 +109,8 @@ Wir bauen den Mitarbeiter in Teilen auf. Jeder Teil ist für sich nützlich, und
 | `reference/` | Hilfsdokumente und Vorlagen. |
 | `scripts/` | Automatisierungs-Skripte. Werden mit neuen Fähigkeiten ergänzt. |
 | `scripts/jarvis/` | Jarvis Content Bot — vollautomatische Video-Pipeline für TikTok/Instagram/YouTube. Start: `python3 scripts/jarvis/run.py` |
-| `scripts/daten/` | Daten-Abruf — holt täglich echte Zahlen von YouTube + Instagram und schreibt sie in `context/current-data.md`. Läuft automatisch um 08:00. Manuell: `python3 scripts/daten/fetch_stats.py` |
+| `scripts/daten/` | Daten-Pipeline — holt täglich echte Zahlen von YouTube + Instagram in SQLite-Datenbank + erzeugt `context/group/key-metrics.md`. Läuft automatisch um 08:00. Manuell: `python3 scripts/daten/collect.py` |
+| `data/data.db` | SQLite-Datenbank mit täglichen Tagesständen. Direkte SQL-Abfragen möglich. Schemas in `reference/data-access.md`. |
 | `scripts/intelligenz/` | Performance-Analyse — analysiert Videos/Reels mit Claude, schreibt Bericht nach `outputs/berichte/`. Läuft automatisch jeden Montag 09:00. Manuell: `python3 scripts/intelligenz/analyse.py` |
 | `scripts/jarvis/voice_chat.py` | Jarvis Voice-Interface (Terminal) — mit Jarvis sprechen, er antwortet mit Stimme. Start: `python3 scripts/jarvis/voice_chat.py` (Enter → sprechen → Enter) |
 | `scripts/jarvis/web_app.py` | Jarvis Web-Interface — visueller Arc-Reactor im Browser, händefrei (Jarvis hört selbst, wann du fertig bist). Start: Doppelklick auf `start_jarvis.command` oder `python3 scripts/jarvis/web_app.py`, dann http://localhost:5005 |
