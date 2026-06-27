@@ -6,8 +6,15 @@ from config import META_ACCESS_TOKEN, INSTAGRAM_ACCOUNT_ID
 # Neue Instagram-API (Instagram-Login-Flow) — Token beginnt mit "IGA..."
 GRAPH_API = "https://graph.instagram.com/v21.0"
 
-HASHTAGS_DE = "#motivation #deutsch #lernen #erfolg #mindset #wissen #viral #fyp #reels #shorts"
-HASHTAGS_EN = "#motivation #english #success #mindset #facts #knowledge #viral #fyp #reels #shorts"
+# Nischen-spezifische Hashtags für maximale Reichweite
+HASHTAGS = {
+    ("motivation", "de"): "#motivation #erfolg #mindset #disziplin #selbstbewusstsein #ziele #erfolgreich #inspiration #motivationdeutsch #durchhalten #reels #fyp #viral",
+    ("motivation", "en"): "#motivation #success #mindset #discipline #selfimprovement #goals #hustle #inspiration #grindset #motivationalvideo #reels #fyp #viral",
+    ("fakten", "de"): "#fakten #wissen #wusstestdu #faktenwissen #allgemeinwissen #lernen #bildung #interessant #faktencheck #wissenswert #reels #fyp #viral",
+    ("fakten", "en"): "#facts #knowledge #didyouknow #funfacts #interesting #education #factsdaily #mindblowing #learnsomething #knowledgeispower #reels #fyp #viral",
+}
+HASHTAGS_FALLBACK_DE = "#motivation #wissen #erfolg #fakten #mindset #reels #fyp #viral"
+HASHTAGS_FALLBACK_EN = "#motivation #knowledge #success #facts #mindset #reels #fyp #viral"
 
 
 def _upload_public(video_path: str) -> str:
@@ -28,13 +35,16 @@ def _upload_public(video_path: str) -> str:
     return url
 
 
-def post_to_instagram(video_path: str, caption: str, language: str = "de") -> str:
-    """Postet ein Reel auf Instagram. Gibt die Media-ID zurück."""
+def post_to_instagram(video_path: str, caption: str, language: str = "de", niche: str = None) -> str:
+    """Postet ein Reel auf Instagram. caption = packender Titel (wie YouTube).
+    Hängt nischen-spezifische Hashtags an. Gibt die Media-ID zurück."""
     if not META_ACCESS_TOKEN or not INSTAGRAM_ACCOUNT_ID:
         print("[poster_instagram] ÜBERSPRUNGEN — META_ACCESS_TOKEN oder INSTAGRAM_ACCOUNT_ID fehlt in .env")
         return None
 
-    hashtags = HASHTAGS_DE if language == "de" else HASHTAGS_EN
+    hashtags = HASHTAGS.get((niche, language))
+    if not hashtags:
+        hashtags = HASHTAGS_FALLBACK_DE if language == "de" else HASHTAGS_FALLBACK_EN
     full_caption = f"{caption}\n\n{hashtags}"
 
     # Schritt 0: Video öffentlich erreichbar machen

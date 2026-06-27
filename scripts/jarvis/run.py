@@ -77,7 +77,7 @@ def make_one_video(niche: str, language: str, dry_run: bool = False) -> dict:
         results["youtube"] = f"FEHLER: {e}"
 
     try:
-        ig_id = post_to_instagram(video_path, script[:300], language)
+        ig_id = post_to_instagram(video_path, title, language, niche)
         results["instagram"] = ig_id
     except Exception as e:
         print(f"[jarvis] Instagram fehlgeschlagen: {e}")
