@@ -3,14 +3,33 @@ import time
 import requests
 from config import META_ACCESS_TOKEN, INSTAGRAM_ACCOUNT_ID
 
-GRAPH_API = "https://graph.facebook.com/v19.0"
+# Neue Instagram-API (Instagram-Login-Flow) — Token beginnt mit "IGA..."
+GRAPH_API = "https://graph.instagram.com/v21.0"
 
-HASHTAGS_DE = "#motivation #deutsch #lernen #erfolg #mindset #wissen #tiktokdeutschland #viral #fyp #shorts"
-HASHTAGS_EN = "#motivation #english #success #mindset #facts #knowledge #viral #fyp #shorts #reels"
+HASHTAGS_DE = "#motivation #deutsch #lernen #erfolg #mindset #wissen #viral #fyp #reels #shorts"
+HASHTAGS_EN = "#motivation #english #success #mindset #facts #knowledge #viral #fyp #reels #shorts"
+
+
+def _upload_public(video_path: str) -> str:
+    """Lädt das Video kurz zu catbox.moe hoch und gibt die öffentliche URL zurück.
+    Instagram braucht eine öffentlich erreichbare Video-URL (kein Datei-Upload)."""
+    print("[poster_instagram] Lade Video für öffentliche URL hoch...")
+    with open(video_path, "rb") as f:
+        resp = requests.post(
+            "https://catbox.moe/user/api.php",
+            data={"reqtype": "fileupload"},
+            files={"fileToUpload": f},
+            timeout=180,
+        )
+    url = resp.text.strip()
+    if not url.startswith("http"):
+        raise RuntimeError(f"Upload fehlgeschlagen: {url}")
+    print(f"[poster_instagram] Öffentliche URL: {url}")
+    return url
 
 
 def post_to_instagram(video_path: str, caption: str, language: str = "de") -> str:
-    """Postet Reel per Meta Graph API. Gibt Post-ID zurück."""
+    """Postet ein Reel auf Instagram. Gibt die Media-ID zurück."""
     if not META_ACCESS_TOKEN or not INSTAGRAM_ACCOUNT_ID:
         print("[poster_instagram] ÜBERSPRUNGEN — META_ACCESS_TOKEN oder INSTAGRAM_ACCOUNT_ID fehlt in .env")
         return None
@@ -18,36 +37,42 @@ def post_to_instagram(video_path: str, caption: str, language: str = "de") -> st
     hashtags = HASHTAGS_DE if language == "de" else HASHTAGS_EN
     full_caption = f"{caption}\n\n{hashtags}"
 
-    # Schritt 1: Container erstellen
+    # Schritt 0: Video öffentlich erreichbar machen
+    video_url = _upload_public(video_path)
+
+    # Schritt 1: Reel-Container erstellen
     print("[poster_instagram] Erstelle Reel-Container...")
     container_url = f"{GRAPH_API}/{INSTAGRAM_ACCOUNT_ID}/media"
-    container_params = {
+    r = requests.post(container_url, data={
         "media_type": "REELS",
-        "video_url": video_path,  # Muss eine öffentliche URL sein
-        "caption": full_caption,
+        "video_url": video_url,
+        "caption": full_caption[:2200],
         "access_token": META_ACCESS_TOKEN,
-    }
-    r = requests.post(container_url, data=container_params)
+    })
     if r.status_code != 200:
         raise RuntimeError(f"Instagram Container-Fehler: {r.text}")
     container_id = r.json()["id"]
 
-    # Schritt 2: Warten bis Container verarbeitet
+    # Schritt 2: Warten bis Instagram das Video verarbeitet hat
     print("[poster_instagram] Warte auf Verarbeitung...")
-    for _ in range(10):
+    for _ in range(20):
         time.sleep(15)
-        status_url = f"{GRAPH_API}/{container_id}"
-        status_r = requests.get(status_url, params={"fields": "status_code", "access_token": META_ACCESS_TOKEN})
+        status_r = requests.get(
+            f"{GRAPH_API}/{container_id}",
+            params={"fields": "status_code", "access_token": META_ACCESS_TOKEN},
+        )
         status = status_r.json().get("status_code")
         if status == "FINISHED":
             break
         elif status == "ERROR":
-            raise RuntimeError("Instagram Video-Verarbeitung fehlgeschlagen.")
+            raise RuntimeError(f"Instagram Verarbeitung fehlgeschlagen: {status_r.text}")
 
     # Schritt 3: Veröffentlichen
-    publish_url = f"{GRAPH_API}/{INSTAGRAM_ACCOUNT_ID}/media_publish"
-    publish_params = {"creation_id": container_id, "access_token": META_ACCESS_TOKEN}
-    pub_r = requests.post(publish_url, data=publish_params)
+    print("[poster_instagram] Veröffentliche Reel...")
+    pub_r = requests.post(
+        f"{GRAPH_API}/{INSTAGRAM_ACCOUNT_ID}/media_publish",
+        data={"creation_id": container_id, "access_token": META_ACCESS_TOKEN},
+    )
     if pub_r.status_code != 200:
         raise RuntimeError(f"Instagram Publish-Fehler: {pub_r.text}")
 
