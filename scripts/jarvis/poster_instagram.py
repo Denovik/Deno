@@ -17,9 +17,27 @@ HASHTAGS_FALLBACK_DE = "#motivation #wissen #erfolg #fakten #mindset #reels #fyp
 HASHTAGS_FALLBACK_EN = "#motivation #knowledge #success #facts #mindset #reels #fyp #viral"
 
 
+SERVER_IP = "167.233.95.3"
+SERVER_PORT = 8080
+SERVER_PUBLIC_DIR = "/opt/mindwave/public"
+_IS_SERVER = os.path.exists(SERVER_PUBLIC_DIR)
+
+
 def _upload_public(video_path: str) -> str:
-    """Lädt das Video kurz zu catbox.moe hoch und gibt die öffentliche URL zurück.
-    Instagram braucht eine öffentlich erreichbare Video-URL (kein Datei-Upload)."""
+    """Stellt das Video öffentlich bereit.
+    Auf dem Hetzner-Server: direkt über den eingebauten File-Server (Port 8080).
+    Lokal: Upload zu catbox.moe als Fallback."""
+    import shutil, uuid
+    filename = f"{uuid.uuid4().hex}.mp4"
+
+    if _IS_SERVER:
+        dest = os.path.join(SERVER_PUBLIC_DIR, filename)
+        shutil.copy2(video_path, dest)
+        url = f"http://{SERVER_IP}:{SERVER_PORT}/{filename}"
+        print(f"[poster_instagram] Video bereitgestellt: {url}")
+        return url
+
+    # Fallback: catbox.moe (lokal/Mac)
     print("[poster_instagram] Lade Video für öffentliche URL hoch...")
     with open(video_path, "rb") as f:
         resp = requests.post(
