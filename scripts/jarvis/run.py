@@ -104,7 +104,8 @@ def make_one_video(niche: str, language: str, dry_run: bool = False) -> dict:
 
 def run_daily(count: int = 4, dry_run: bool = False):
     """Produziert `count` Videos mit gemischten Nischen und Sprachen."""
-    combos = [(n, l) for n in NICHES.keys() for l in LANGUAGES]
+    # 70% Deutsch, 30% Englisch
+    combos = [(n, "de") for n in NICHES.keys()] * 7 + [(n, "en") for n in NICHES.keys()] * 3
     random.shuffle(combos)
     selected = (combos * ((count // len(combos)) + 1))[:count]
 
