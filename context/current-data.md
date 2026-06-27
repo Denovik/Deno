@@ -29,16 +29,19 @@
 ## Stand zur Strategie
 
 - **Nische: gewählt** — Motivation + Fakten/Wissen, jeweils Deutsch und Englisch
-- **Content-Pipeline: gebaut und funktioniert** — Skript → Stimme (ElevenLabs) → Hintergrundvideo → synchrone Untertitel → fertiges 9:16-Video
+- **Content-Pipeline: gebaut und läuft vollautomatisch** — Skript → packender Titel → Stimme (ElevenLabs) → Hintergrundvideo → synchrone Untertitel → leise Hintergrundmusik → fertiges 9:16-Video
+- **YouTube + Instagram posten vollautomatisch** (täglich 19:00, 2 Videos, per launchd-Auto-Lauf)
 - Erste Einnahmen: noch nicht erzielt
 - Lücke zum Ziel: 2.000 €/Monat
 
 ## Laufendes
 
 - CEO-GPT aufgesetzt (Absicherung + Kontext installiert)
-- **Jarvis Content Bot fertig** (`scripts/jarvis/`) — produziert automatisch Videos
-- **TikTok-App "JarvisBot" eingerichtet** — Login Kit + Content Posting API (Direct Post), Scopes gesetzt, Client-Keys hinterlegt → **wartet auf TikTok-Review-Freigabe**
-- Nächster Schritt: **YouTube anschließen** (sofort live, keine Wartezeit), dann Instagram, dann täglicher Auto-Lauf (Cron)
+- **Jarvis Content Bot fertig & automatisiert** (`scripts/jarvis/`) — täglicher Auto-Lauf um 19:00 Uhr
+- **YouTube: ✅ live & vollautomatisch** — eigener Kanal "Mindwave" (@mindwave26)
+- **Instagram: ✅ live & vollautomatisch** — Konto mind.wave26, postet Reels mit Titel + Nischen-Hashtags. ⚠️ Token läuft ~Ende August 2026 ab, muss dann erneuert werden
+- **TikTok: ⏳ wartet auf Review-Freigabe** — App "JarvisBot" eingerichtet, danach fehlt noch der OAuth-Login
+- Nächster Schritt: TikTok-Freigabe abwarten, dann letzten Login-Flow bauen
 
 ## Team-Auslastung
 

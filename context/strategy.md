@@ -24,10 +24,10 @@ Q3 2026 — Aufbauphase. Alles wird von Grund auf gestartet. Kein laufendes Eink
 ## Strategische Hebel
 
 1. ~~**Nische wählen**~~ ✅ erledigt — Motivation + Fakten/Wissen (DE + EN)
-2. ~~**Content-Automatisierung aufbauen**~~ ✅ Pipeline gebaut und läuft (`scripts/jarvis/`)
-3. **Plattformen anschließen** — TikTok (im Review), als Nächstes YouTube, dann Instagram. Damit Jarvis automatisch posten kann.
+2. ~~**Content-Automatisierung aufbauen**~~ ✅ Pipeline gebaut, läuft vollautomatisch täglich 19:00
+3. **Plattformen anschließen** — ✅ YouTube + Instagram live & automatisch. TikTok ⏳ im Review (letzter Schritt nach Freigabe).
 4. **Plattform-Monetarisierung aktivieren** — TikTok Creator Fund, YouTube AdSense und Instagram Monetarisierung freischalten (Follower-Schwellen erreichen)
-5. **Plattform-Reichweite aufbauen** — TikTok als Priorität, Instagram und YouTube parallel
+5. **Plattform-Reichweite aufbauen** — jetzt der Hauptfokus: Views & Follower wachsen lassen, Content optimieren
 6. **System skalieren** — Was funktioniert, replizieren und ausbauen
 
 ## Wie Erfolg aussieht
