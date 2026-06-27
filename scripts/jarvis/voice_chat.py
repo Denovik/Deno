@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-Jarvis Voice-Interface — mit Jarvis sprechen.
+Jarvis Voice-Interface (Terminal) — mit Jarvis sprechen.
 Start: python3 scripts/jarvis/voice_chat.py
 
 Ablauf je Runde:
   Enter drücken → sprechen → Enter drücken → Jarvis hört zu, denkt nach und antwortet mit Stimme.
-  "tschüss" / "beenden" sagen oder Strg+C beendet.
+  "tschüss" sagen oder Strg+C beendet.
+
+Hinweis: Die Kern-Logik liegt in jarvis_brain.py (geteilt mit dem Web-Interface).
 """
 
 import os
@@ -19,44 +21,14 @@ from pathlib import Path
 
 import numpy as np
 import sounddevice as sd
-import requests
-import anthropic
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
-from config import (
-    ANTHROPIC_API_KEY, ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID_DE, BASE_DIR
-)
+from config import ANTHROPIC_API_KEY, ELEVENLABS_API_KEY
+import jarvis_brain as brain
 
-SAMPLE_RATE = 16000          # 16 kHz — ideal für Spracherkennung
-WHISPER_MODEL = "small"      # guter Kompromiss Genauigkeit/Tempo
-CLAUDE_MODEL = "claude-sonnet-4-6"
-
-_whisper = None              # wird beim ersten Mal geladen (lazy)
-
-
-def _load_context() -> str:
-    """Liest die context/-Dateien für Jarvis' Hintergrundwissen über Dennis."""
-    parts = []
-    ctx_dir = os.path.join(BASE_DIR, "context")
-    for name in ["personal-info.md", "business-info.md", "strategy.md", "current-data.md"]:
-        path = os.path.join(ctx_dir, name)
-        if os.path.exists(path):
-            with open(path, encoding="utf-8") as f:
-                parts.append(f"### {name}\n{f.read()}")
-    return "\n\n".join(parts)
-
-
-SYSTEM_PROMPT = (
-    "Du bist Jarvis, der persönliche KI-Assistent und beste Mitarbeiter von Dennis. "
-    "Du sprichst per Stimme mit ihm — antworte deshalb natürlich, klar und KURZ "
-    "(2-4 Sätze, wie im echten Gespräch), ohne Aufzählungen, Markdown oder Code. "
-    "Du duzt Dennis nicht von dir aus über die Maßen — du bist sein professioneller, "
-    "freundlicher Mitarbeiter. Du kennst sein Business (siehe Kontext) und denkst mit. "
-    "Wenn du etwas nicht weißt, sag es ehrlich.\n\n"
-    "=== KONTEXT ÜBER DENNIS UND SEIN BUSINESS ===\n" + _load_context()
-)
+SAMPLE_RATE = 16000
 
 
 def record_until_enter() -> str:
@@ -95,46 +67,11 @@ def record_until_enter() -> str:
     return tmp.name
 
 
-def transcribe(wav_path: str) -> str:
-    """Wandelt Sprache in Text um — lokal mit faster-whisper (kostenlos, offline)."""
-    global _whisper
-    if _whisper is None:
-        from faster_whisper import WhisperModel
-        print("[jarvis] Lade Spracherkennung (einmalig)...")
-        _whisper = WhisperModel(WHISPER_MODEL, device="cpu", compute_type="int8")
-    segments, _ = _whisper.transcribe(wav_path, language="de")
-    return " ".join(seg.text for seg in segments).strip()
-
-
-def think(client, history: list, user_text: str) -> str:
-    """Schickt die Frage an Claude (mit Gesprächsverlauf) und gibt die Antwort zurück."""
-    history.append({"role": "user", "content": user_text})
-    message = client.messages.create(
-        model=CLAUDE_MODEL,
-        max_tokens=400,
-        system=SYSTEM_PROMPT,
-        messages=history,
-    )
-    answer = message.content[0].text.strip()
-    history.append({"role": "assistant", "content": answer})
-    return answer
-
-
 def speak(text: str):
-    """Wandelt Text in Jarvis-Stimme (ElevenLabs) um und spielt ihn ab."""
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID_DE}"
-    headers = {"Content-Type": "application/json", "xi-api-key": ELEVENLABS_API_KEY}
-    payload = {
-        "text": text,
-        "model_id": "eleven_multilingual_v2",
-        "voice_settings": {"stability": 0.5, "similarity_boost": 0.75, "style": 0.3, "use_speaker_boost": True},
-    }
-    r = requests.post(url, json=payload, headers=headers)
-    if r.status_code != 200:
-        print(f"[jarvis] Stimme-Fehler {r.status_code}: {r.text}")
-        return
+    """Erzeugt die Jarvis-Stimme und spielt sie ab."""
+    audio = brain.synthesize(text)
     tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
-    tmp.write(r.content)
+    tmp.write(audio)
     tmp.close()
     subprocess.run(["afplay", tmp.name])
     os.remove(tmp.name)
@@ -145,7 +82,7 @@ def main():
         print("Fehlt: ANTHROPIC_API_KEY oder ELEVENLABS_API_KEY in .env")
         sys.exit(1)
 
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = brain.make_client()
     history = []
 
     print("=" * 55)
@@ -163,7 +100,7 @@ def main():
                 print("[jarvis] Nichts gehört, nochmal.")
                 continue
 
-            text = transcribe(wav)
+            text = brain.transcribe(wav)
             os.remove(wav)
             if not text:
                 print("[jarvis] Konnte nichts verstehen, nochmal.")
@@ -175,7 +112,7 @@ def main():
                 print("[jarvis] Tschüss!")
                 break
 
-            answer = think(client, history, text)
+            answer = brain.think(client, history, text)
             print(f"  Jarvis: {answer}\n")
             speak(answer)
     except KeyboardInterrupt:

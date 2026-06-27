@@ -105,7 +105,8 @@ Wir bauen den Mitarbeiter in Teilen auf. Jeder Teil ist für sich nützlich, und
 | `reference/` | Hilfsdokumente und Vorlagen. |
 | `scripts/` | Automatisierungs-Skripte. Werden mit neuen Fähigkeiten ergänzt. |
 | `scripts/jarvis/` | Jarvis Content Bot — vollautomatische Video-Pipeline für TikTok/Instagram/YouTube. Start: `python3 scripts/jarvis/run.py` |
-| `scripts/jarvis/voice_chat.py` | Jarvis Voice-Interface — mit Jarvis sprechen, er antwortet mit Stimme. Start: `python3 scripts/jarvis/voice_chat.py` (Enter → sprechen → Enter) |
+| `scripts/jarvis/voice_chat.py` | Jarvis Voice-Interface (Terminal) — mit Jarvis sprechen, er antwortet mit Stimme. Start: `python3 scripts/jarvis/voice_chat.py` (Enter → sprechen → Enter) |
+| `scripts/jarvis/web_app.py` | Jarvis Web-Interface — visueller Arc-Reactor im Browser, händefrei (Jarvis hört selbst, wann du fertig bist). Start: Doppelklick auf `start_jarvis.command` oder `python3 scripts/jarvis/web_app.py`, dann http://localhost:5005 |
 | `shares/` | Fertig verpackte Systeme zum Weitergeben. |
 
 ---

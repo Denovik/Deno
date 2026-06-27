@@ -10,6 +10,15 @@
 
 ## 2026-06-27
 
+### Jarvis Web-Interface (visueller Arc-Reactor, händefrei)
+
+- Lokale Web-App: `web_app.py` (Flask) + `web/index.html` (Arc-Reactor-Oberfläche)
+- Händefrei: Browser erkennt per Voice-Activity-Detection, wann man fertig spricht
+- Orb-Zustände: bereit → höre zu → denke nach → spricht
+- Kern-Logik in `jarvis_brain.py` extrahiert (geteilt mit Terminal-Interface)
+- Doppelklick-Starter `start_jarvis.command`, Server auf http://localhost:5005
+- Server-Kette getestet: Transkript, Claude-Antwort mit Kontext, Sprach-Antwort ok
+
 ### Jarvis Voice-Interface gebaut
 
 - `scripts/jarvis/voice_chat.py` — mit Jarvis sprechen, er antwortet mit Stimme
