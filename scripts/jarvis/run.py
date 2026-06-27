@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 from config import NICHES, LANGUAGES, POSTING_SCHEDULE, OUTPUTS_DIR, TEMP_DIR, BASE_DIR
-from script_generator import generate_script
+from script_generator import generate_script, generate_title
 from voice_generator import generate_voice
 from pexels_client import get_stock_video
 from video_builder import build_video
@@ -61,10 +61,9 @@ def make_one_video(niche: str, language: str, dry_run: bool = False) -> dict:
     video_path = build_video(audio_path, stock_path, script, output_path, word_timings)
 
     # 5. Titel und Beschreibung
-    niche_label = "Motivation" if niche == "motivation" else "Fakten & Wissen"
-    lang_label = "🇩🇪" if language == "de" else "🇬🇧"
-    title = f"{lang_label} {niche_label} | {ts}"
-    description = f"{script[:500]}\n\n#jarvis #automation"
+    title = generate_title(script, niche, language)
+    print(f"[jarvis] Titel: {title}")
+    description = f"{script[:500]}\n\n#shorts #motivation #fakten #wissen"
     tags = ["motivation", "fakten", "wissen", "deutsch", "english", "viral", "shorts"]
 
     results = {"label": label, "video_path": video_path}

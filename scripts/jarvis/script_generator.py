@@ -40,3 +40,31 @@ def generate_script(niche: str, language: str) -> str:
 
     print(f"[script_generator] Skript gespeichert: {filename}")
     return script_text
+
+
+def generate_title(script_text: str, niche: str, language: str) -> str:
+    """Erzeugt einen packenden, content-bezogenen Titel fürs Video (ohne Datum/Zahlencodes)."""
+    if language == "de":
+        instruction = (
+            "Schreib einen kurzen, neugierig machenden YouTube-Shorts-Titel für dieses Video. "
+            "Maximal 60 Zeichen. KEIN Datum, KEINE Uhrzeit, KEINE technischen Codes. "
+            "Pack 1-2 passende Emojis rein wenn es passt. Gib NUR den Titel zurück, sonst nichts.\n\n"
+            f"Skript:\n{script_text}"
+        )
+    else:
+        instruction = (
+            "Write a short, curiosity-driving YouTube Shorts title for this video. "
+            "Max 60 characters. NO date, NO time, NO technical codes. "
+            "Add 1-2 fitting emojis if appropriate. Return ONLY the title, nothing else.\n\n"
+            f"Script:\n{script_text}"
+        )
+
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=100,
+        messages=[{"role": "user", "content": instruction}],
+    )
+    title = message.content[0].text.strip().strip('"').strip()
+    # Sicherheitsnetz: auf 100 Zeichen kürzen (YouTube-Limit)
+    return title[:100]
