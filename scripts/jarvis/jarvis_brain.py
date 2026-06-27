@@ -60,6 +60,11 @@ TOOLS = [
         "description": "Prüft, ob gerade eine Video-Produktion läuft und wie die letzte ausging.",
         "input_schema": {"type": "object", "properties": {}, "required": []},
     },
+    {
+        "name": "analyse_starten",
+        "description": "Analysiert die Content-Performance auf YouTube und Instagram: welche Videos laufen gut, was nicht, und gibt konkrete Empfehlungen. Nutze das, wenn Dennis sagt: analysiere meine Videos / wie laufen meine Videos / was funktioniert / gib mir eine Auswertung.",
+        "input_schema": {"type": "object", "properties": {}, "required": []},
+    },
 ]
 
 

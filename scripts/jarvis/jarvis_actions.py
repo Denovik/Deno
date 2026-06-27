@@ -11,6 +11,7 @@ from datetime import datetime
 from config import BASE_DIR
 
 RUN_PY = os.path.join(BASE_DIR, "scripts", "jarvis", "run.py")
+ANALYSE_PY = os.path.join(BASE_DIR, "scripts", "intelligenz", "analyse.py")
 
 _state = {"running": False, "started": None, "count": 0, "last_result": None}
 
@@ -50,8 +51,36 @@ def pipeline_status() -> str:
     return "Im Moment läuft keine Produktion. Sag einfach Bescheid, wenn ich welche starten soll."
 
 
+_analyse_state = {"running": False, "last_result": None}
+
+
+def analyse_starten() -> str:
+    """Analysiert die Content-Performance auf YouTube und Instagram (läuft im Hintergrund)."""
+    if _analyse_state["running"]:
+        return "Eine Analyse läuft bereits. Ich melde mich, wenn sie fertig ist."
+
+    def worker():
+        _analyse_state.update(running=True, last_result=None)
+        try:
+            r = subprocess.run(
+                [sys.executable, ANALYSE_PY],
+                cwd=BASE_DIR, capture_output=True, text=True, timeout=300,
+            )
+            _analyse_state["last_result"] = "fertig" if r.returncode == 0 else "fehlgeschlagen"
+        except Exception as e:
+            _analyse_state["last_result"] = f"abgebrochen ({e})"
+        finally:
+            _analyse_state["running"] = False
+
+    threading.Thread(target=worker, daemon=True).start()
+    return ("Ich analysiere gerade deine Videos auf YouTube und Instagram. "
+            "Das dauert etwa eine Minute. Du findest den Bericht danach in outputs/berichte/ "
+            "und die Kurzfassung in deinem Kontext.")
+
+
 # Registry: Name → Funktion (wird vom Gehirn aufgerufen)
 ACTIONS = {
     "video_pipeline_starten": run_pipeline,
     "pipeline_status": pipeline_status,
+    "analyse_starten": analyse_starten,
 }

@@ -55,3 +55,16 @@ Solo. Dennis trägt alles allein. Zeit ist vorhanden, Budget ist sehr begrenzt.
 - **Instagram:** automatisch via Instagram Graph API (täglich 08:00)
 - **TikTok:** noch manuell (nach Review-Freigabe automatisierbar)
 - Manueller Abruf: `python3 scripts/daten/fetch_stats.py`
+
+## Letzte Analyse
+
+**Stand:** 27.06.2026
+
+## Performance-Analyse Mindwave
+
+---
+
+### ✅ Was funktioniert (relativ)
+
+
+_Vollständiger Bericht: `outputs/berichte/2026-06-27-performance-analyse.md`_
