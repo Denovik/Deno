@@ -10,6 +10,16 @@
 
 ## 2026-06-27
 
+### Jarvis: Untertitel, Musik, Titel & Plattform-Anbindung
+
+- Untertitel-Sync gefixt (frame-genaues Einbrennen Wort für Wort, kein Overlap)
+- Content-bezogene Video-Titel statt Datum/Codes (`generate_title` per Claude)
+- Leise Hintergrundmusik (12%) aus `music/` unter die Stimme gemischt
+- **YouTube live & vollautomatisch:** Kanal "Mindwave", OAuth eingerichtet, täglicher Auto-Lauf (launchd, 19:00, 2 Videos)
+- **Instagram live & vollautomatisch:** Creator-Konto + FB-Seite + Meta-App, Posting über neue Instagram-API (graph.instagram.com), Video-Hosting via catbox.moe — erfolgreich getestet
+- TikTok-App eingereicht, wartet auf Review-Freigabe
+- Dateien: `video_builder.py`, `script_generator.py`, `run.py`, `poster_youtube.py`, `poster_instagram.py`, `daily_run.sh`
+
 ### Jarvis Content Bot implementiert
 
 - Alle 8 Bot-Dateien erstellt unter `scripts/jarvis/`
