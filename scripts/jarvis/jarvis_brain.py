@@ -35,10 +35,18 @@ SYSTEM_PROMPT = (
     "(2-4 Sätze, wie im echten Gespräch), ohne Aufzählungen, Markdown oder Code. "
     "Du bist sein professioneller, freundlicher Mitarbeiter. Du kennst sein Business "
     "(siehe Kontext) und denkst mit. Wenn du etwas nicht weißt, sag es ehrlich.\n\n"
-    "WICHTIG: Du kannst nicht nur reden, sondern auch HANDELN. Wenn Dennis dich bittet, "
-    "Videos zu erstellen oder zu posten / die Pipeline zu starten, dann FÜHRE das mit deinem "
-    "Werkzeug 'video_pipeline_starten' aus — sag nicht, er solle es selbst im Terminal machen. "
-    "Du HAST Zugriff darauf. Mit 'pipeline_status' kannst du nachsehen, ob eine Produktion läuft.\n\n"
+    "WICHTIG: Du kannst nicht nur reden, sondern auch HANDELN. Du hast folgende Werkzeuge:\n"
+    "- 'video_pipeline_starten': Videos erstellen und auf YouTube/Instagram posten\n"
+    "- 'pipeline_status': Status einer laufenden Produktion prüfen\n"
+    "- 'analyse_starten': Content-Performance analysieren\n"
+    "- 'wetter_abrufen': Aktuelles Wetter für jeden Ort abrufen\n"
+    "- 'web_suche': Im Internet nach Informationen suchen und recherchieren\n"
+    "- 'webseite_lesen': Inhalte einer bestimmten Webseite lesen\n"
+    "- 'datum_uhrzeit': Aktuelles Datum und Uhrzeit abrufen\n"
+    "- 'rechner': Mathematische Berechnungen durchführen\n\n"
+    "Nutze diese Werkzeuge AKTIV und PROAKTIV. Wenn Dennis nach Wetter fragt — ruf es ab. "
+    "Wenn er sagt 'recherchier mal X' — such sofort im Web. Wenn er eine URL nennt — lies sie. "
+    "Sag NIEMALS 'ich kann das nicht', wenn ein Werkzeug existiert. Handeln, nicht vertrösten.\n\n"
     "=== KONTEXT ÜBER DENNIS UND SEIN BUSINESS ===\n" + load_context()
 )
 
@@ -64,6 +72,56 @@ TOOLS = [
         "name": "analyse_starten",
         "description": "Analysiert die Content-Performance auf YouTube und Instagram: welche Videos laufen gut, was nicht, und gibt konkrete Empfehlungen. Nutze das, wenn Dennis sagt: analysiere meine Videos / wie laufen meine Videos / was funktioniert / gib mir eine Auswertung.",
         "input_schema": {"type": "object", "properties": {}, "required": []},
+    },
+    {
+        "name": "wetter_abrufen",
+        "description": "Aktuelles Wetter und Wettervorhersage für einen Ort abrufen. Nutze das bei Fragen wie: Wie ist das Wetter? Wie warm ist es? Was ist die Temperatur? Regnet es? Soll ich eine Jacke anziehen?",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "ort": {"type": "string", "description": "Stadt oder Ort, z.B. 'Köln', 'Berlin', 'München'. Standard: Köln."}
+            },
+            "required": [],
+        },
+    },
+    {
+        "name": "web_suche",
+        "description": "Sucht im Internet nach aktuellen Informationen. Nutze das bei Fragen wie: Recherchiere X / Was ist Y / Wie funktioniert Z / Was kostet X / Wer ist X / Aktuelle News zu X. Immer nutzen wenn du aktuelle oder spezifische Informationen brauchst, die du nicht sicher weißt.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "anfrage": {"type": "string", "description": "Die Suchanfrage auf Deutsch oder Englisch."},
+                "anzahl": {"type": "integer", "description": "Anzahl der Ergebnisse (Standard: 5, max: 10)."}
+            },
+            "required": ["anfrage"],
+        },
+    },
+    {
+        "name": "webseite_lesen",
+        "description": "Liest den Inhalt einer bestimmten Webseite. Nutze das wenn Dennis eine URL nennt oder wenn du nach einer Suche tiefer in einen Artikel eintauchen sollst.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "Die vollständige URL der Webseite."}
+            },
+            "required": ["url"],
+        },
+    },
+    {
+        "name": "datum_uhrzeit",
+        "description": "Gibt aktuelles Datum, Uhrzeit und Wochentag zurück. Nutze das bei Fragen wie: Was ist heute? Welcher Tag ist heute? Wie spät ist es?",
+        "input_schema": {"type": "object", "properties": {}, "required": []},
+    },
+    {
+        "name": "rechner",
+        "description": "Berechnet mathematische Ausdrücke. Nutze das bei Rechenaufgaben wie: Was ist 15% von 2000? Wie viel ist 347 mal 12? Rechne X aus.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "ausdruck": {"type": "string", "description": "Der mathematische Ausdruck, z.B. '15% von 2000' oder '347 * 12'."}
+            },
+            "required": ["ausdruck"],
+        },
     },
 ]
 
