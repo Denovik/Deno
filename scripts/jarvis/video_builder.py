@@ -12,7 +12,12 @@ from config import VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS, BASE_DIR
 MUSIC_DIR = os.path.join(BASE_DIR, "music")
 MUSIC_VOLUME = 0.12   # 12% Lautstärke — Hintergrund, übertönt die Stimme nicht
 
-FONT_PATH = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+_FONT_CANDIDATES = [
+    "/System/Library/Fonts/Supplemental/Arial Bold.ttf",   # macOS
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",  # Linux
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",          # Linux fallback
+]
+FONT_PATH = next((p for p in _FONT_CANDIDATES if os.path.exists(p)), _FONT_CANDIDATES[0])
 FONT_SIZE_MAX = 90
 TEXT_COLOR = (255, 0, 255)       # Magenta
 STROKE_COLOR = (0, 0, 0)
