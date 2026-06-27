@@ -36,7 +36,19 @@
       "Bash(ffmpeg -i outputs/videos/2026-06-27_0259-fakten-de.mp4 -vf \"select=between\\(n\\\\,295\\\\,298\\)\" -vsync 0 /tmp/frame_%03d.png -y)",
       "Bash(open /tmp/check_frame_9.90.png /tmp/check_frame_9.95.png /tmp/check_frame_10.00.png /tmp/check_frame_10.05.png)",
       "Bash(open outputs/videos/2026-06-27_0323-fakten-de.mp4)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(mv ~/Downloads/client_secret_284148387381-*.json /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/credentials/youtube_client_secret.json && ls -l /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/credentials/youtube_client_secret.json && echo \"✅ Datei liegt jetzt richtig\" && git check-ignore /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/credentials/youtube_client_secret.json && echo \"✅ und ist vor GitHub geschützt\")",
+      "Bash(chmod +x /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/scripts/jarvis/daily_run.sh)",
+      "Bash(launchctl unload *)",
+      "Bash(launchctl load *)",
+      "Bash(launchctl list *)",
+      "WebFetch(domain:pixabay.com)",
+      "WebFetch(domain:freepd.com)",
+      "WebSearch",
+      "WebFetch(domain:archive.org)",
+      "Bash(open /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/outputs/videos/MUSIK-TEST.mp4)",
+      "Bash(git reset *)",
+      "Bash(curl -s -F \"reqtype=fileupload\" -F \"fileToUpload=@outputs/videos/2026-06-27_0201-motivation-en.mp4\" https://catbox.moe/user/api.php)"
     ]
   }
 }
