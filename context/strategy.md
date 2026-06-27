@@ -23,11 +23,12 @@ Q3 2026 — Aufbauphase. Alles wird von Grund auf gestartet. Kein laufendes Eink
 
 ## Strategische Hebel
 
-1. **Nische wählen** — Eine profitable, wachsende Nische mit Affiliate-Potential identifizieren (TikTok-first)
-2. **Content-Automatisierung aufbauen** — KI-Pipeline für Video/Post-Erstellung, die ohne tägliche Handarbeit läuft
-3. **Plattform-Monetarisierung aktivieren** — TikTok Creator Fund, YouTube AdSense und Instagram Monetarisierung freischalten (Follower-Schwellen erreichen)
-4. **Plattform-Reichweite aufbauen** — TikTok als Priorität, Instagram und YouTube parallel
-5. **System skalieren** — Was funktioniert, replizieren und ausbauen
+1. ~~**Nische wählen**~~ ✅ erledigt — Motivation + Fakten/Wissen (DE + EN)
+2. ~~**Content-Automatisierung aufbauen**~~ ✅ Pipeline gebaut und läuft (`scripts/jarvis/`)
+3. **Plattformen anschließen** — TikTok (im Review), als Nächstes YouTube, dann Instagram. Damit Jarvis automatisch posten kann.
+4. **Plattform-Monetarisierung aktivieren** — TikTok Creator Fund, YouTube AdSense und Instagram Monetarisierung freischalten (Follower-Schwellen erreichen)
+5. **Plattform-Reichweite aufbauen** — TikTok als Priorität, Instagram und YouTube parallel
+6. **System skalieren** — Was funktioniert, replizieren und ausbauen
 
 ## Wie Erfolg aussieht
 
@@ -38,10 +39,10 @@ In 6 Monaten (Dezember 2026):
 
 ## Offene Fragen
 
-- Welche Nische ist am profitabelsten und realistisch mit Automatisierung bedienbar?
-- Welche kostenlosen oder günstigen KI-Tools eignen sich für die Content-Pipeline?
-- Wie schnell kann mit Affiliate-Marketing erstes Einkommen erzielt werden?
-- TikTok vs. YouTube — wo sollte der erste Fokus liegen?
+- Wie schnell kommt die TikTok-Review-Freigabe — und fordert TikTok ein Demo-Video nach?
+- Wie schnell lassen sich die Monetarisierungs-Schwellen der Plattformen erreichen?
+- Ab wann macht Affiliate-Marketing (Phase 2) Sinn, und mit welchen Produkten?
+- Wie oft pro Tag posten, ohne von den Plattformen als Spam eingestuft zu werden?
 
 ---
 

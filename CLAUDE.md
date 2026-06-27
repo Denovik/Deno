@@ -28,7 +28,7 @@ Du musst nicht technisch sein. Du musst nichts programmieren können. Du beschre
 
 **Business:** Vollautomatisierte KI-Content-Pipeline für TikTok, Instagram und YouTube — Einnahmen primär über Plattform-Monetarisierung (Views/Reichweite)
 **Rolle:** Dennis — Gründer und Alleinverantwortlicher, baut das System solo auf
-**Aktueller Fokus:** Nischenwahl + erste Content-Automatisierung aufbauen
+**Aktueller Fokus:** Pipeline steht (Nischen gewählt, Video-Bot läuft) — jetzt Plattformen anschließen: TikTok im Review, YouTube als Nächstes
 **Wichtigste Kennzahl:** Monatliche Einnahmen (Ziel: 2.000 €/Monat bis Dez 2026)
 
 ---

@@ -13,7 +13,7 @@
 
 ---
 
-**Stand:** 26.06.2026
+**Stand:** 27.06.2026
 
 ## Kennzahlen
 
@@ -28,15 +28,17 @@
 
 ## Stand zur Strategie
 
-- Nische: noch nicht gewählt
-- Content-Pipeline: noch nicht aufgebaut
+- **Nische: gewählt** — Motivation + Fakten/Wissen, jeweils Deutsch und Englisch
+- **Content-Pipeline: gebaut und funktioniert** — Skript → Stimme (ElevenLabs) → Hintergrundvideo → synchrone Untertitel → fertiges 9:16-Video
 - Erste Einnahmen: noch nicht erzielt
 - Lücke zum Ziel: 2.000 €/Monat
 
 ## Laufendes
 
 - CEO-GPT aufgesetzt (Absicherung + Kontext installiert)
-- Nächster Schritt: Nischenwahl und erste Content-Strategie
+- **Jarvis Content Bot fertig** (`scripts/jarvis/`) — produziert automatisch Videos
+- **TikTok-App "JarvisBot" eingerichtet** — Login Kit + Content Posting API (Direct Post), Scopes gesetzt, Client-Keys hinterlegt → **wartet auf TikTok-Review-Freigabe**
+- Nächster Schritt: **YouTube anschließen** (sofort live, keine Wartezeit), dann Instagram, dann täglicher Auto-Lauf (Cron)
 
 ## Team-Auslastung
 
