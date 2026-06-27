@@ -5,6 +5,7 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', '.en
 
 # API Keys
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 ELEVENLABS_VOICE_ID_DE = os.getenv("ELEVENLABS_VOICE_ID_DE", "pNInz6obpgDQGcFmaJgB")  # Default: Adam (DE-fähig)
 ELEVENLABS_VOICE_ID_EN = os.getenv("ELEVENLABS_VOICE_ID_EN", "21m00Tcm4TlvDq8ikWAM")  # Default: Rachel

@@ -12,7 +12,31 @@
       "Bash(claude --version)",
       "Bash(cp /Users/dennisgluck/Desktop/CLAUDE/absicherung/templates/gitignore /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/.gitignore && cat /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/.gitignore | head -5)",
       "Bash(mkdir -p /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/.claude/commands)",
-      "Bash(cp /Users/dennisgluck/Desktop/CLAUDE/absicherung/commands/commit.md /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/.claude/commands/commit.md)"
+      "Bash(cp /Users/dennisgluck/Desktop/CLAUDE/absicherung/commands/commit.md /Users/dennisgluck/Desktop/CLAUDE/ceogpt-start/.claude/commands/commit.md)",
+      "Bash(gh --version)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(pip3 install *)",
+      "Bash(python3 -c ' *)",
+      "Bash(qlmanage -t -s 1024 -o /Users/dennisgluck/Desktop/ /Users/dennisgluck/Desktop/jarvisbot_icon.svg)",
+      "Bash(python3 -c \"import sys; print\\('Python-Pfad:', sys.executable\\)\")",
+      "Bash(python3 -m venv /tmp/jarvis-test-venv)",
+      "Bash(/tmp/jarvis-test-venv/bin/pip install *)",
+      "Bash(/tmp/jarvis-test-venv/bin/python3 scripts/jarvis/run.py --dry-run --once --count 1)",
+      "Bash(/tmp/jarvis-test-venv/bin/python3 -c \"import moviepy; print\\(moviepy.__version__\\)\")",
+      "Bash(venv/bin/pip install *)",
+      "Bash(find /System/Library/Fonts /Library/Fonts ~/Library/Fonts -name \"*.ttf\" -o -name \"*.otf\" 2>/dev/null | grep -i \"arial\\\\|helvetica\\\\|sfpro\\\\|SF\" | head -10)",
+      "Bash(find /System/Library/Fonts /Library/Fonts -name \"*.ttf\" 2>/dev/null | grep -i \"bold\" | head -5)",
+      "Bash(open outputs/videos/2026-06-27_0245-motivation-en.mp4)",
+      "Bash(open outputs/videos/2026-06-27_0253-fakten-de.mp4)",
+      "Bash(open outputs/videos/2026-06-27_0259-fakten-de.mp4)",
+      "Bash(ffprobe -v quiet -print_format json -show_streams outputs/videos/2026-06-27_0259-fakten-de.mp4)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); v=[s for s in d['streams'] if s['codec_type']=='video'][0]; print\\('FPS:', v.get\\('r_frame_rate'\\), 'Frames:', v.get\\('nb_frames'\\), 'Duration:', v.get\\('duration'\\)\\)\")",
+      "Bash(ffmpeg -i outputs/videos/2026-06-27_0259-fakten-de.mp4 -vf \"select=between\\(n\\\\,295\\\\,298\\)\" -vsync 0 /tmp/frame_%03d.png -y)",
+      "Bash(open /tmp/check_frame_9.90.png /tmp/check_frame_9.95.png /tmp/check_frame_10.00.png /tmp/check_frame_10.05.png)",
+      "Bash(open outputs/videos/2026-06-27_0323-fakten-de.mp4)",
+      "Bash(git check-ignore *)"
     ]
   }
 }

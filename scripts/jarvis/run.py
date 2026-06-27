@@ -17,7 +17,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
-from config import NICHES, LANGUAGES, POSTING_SCHEDULE, OUTPUTS_DIR, TEMP_DIR
+from config import NICHES, LANGUAGES, POSTING_SCHEDULE, OUTPUTS_DIR, TEMP_DIR, BASE_DIR
 from script_generator import generate_script
 from voice_generator import generate_voice
 from pexels_client import get_stock_video
@@ -43,15 +43,22 @@ def make_one_video(niche: str, language: str, dry_run: bool = False) -> dict:
         print("[jarvis] DRY-RUN: Skript generiert, kein Video wird erstellt.")
         return {"label": label, "script": script[:200], "dry_run": True}
 
-    # 2. Stimme generieren
-    audio_path = generate_voice(script, language)
+    # 2. Stimme generieren (gibt audio_path + Wort-Timestamps zurück)
+    audio_path, word_timings = generate_voice(script, language)
 
-    # 3. Stock-Video holen
-    stock_path = get_stock_video(niche)
+    # 3. Hintergrund-Video holen (eigene Videos bevorzugt, sonst Pexels)
+    import glob
+    bg_files = glob.glob(os.path.join(BASE_DIR, "backgrounds", "*.mp4")) + \
+               glob.glob(os.path.join(BASE_DIR, "backgrounds", "*.mov"))
+    if bg_files:
+        stock_path = random.choice(bg_files)
+        print(f"[jarvis] Hintergrund: {os.path.basename(stock_path)}")
+    else:
+        stock_path = get_stock_video(niche)
 
     # 4. Video bauen
     output_path = os.path.join(OUTPUTS_DIR, "videos", f"{label}.mp4")
-    video_path = build_video(audio_path, stock_path, script, output_path)
+    video_path = build_video(audio_path, stock_path, script, output_path, word_timings)
 
     # 5. Titel und Beschreibung
     niche_label = "Motivation" if niche == "motivation" else "Fakten & Wissen"

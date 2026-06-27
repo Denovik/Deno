@@ -37,5 +37,10 @@ data/*.log
 *.tmp
 *.bak
 
+# --- Jarvis Outputs (generierte Videos, Audio, große Dateien) ---
+outputs/
+backgrounds/*.mp4
+backgrounds/*.mov
+
 # --- Node (falls genutzt) ---
 node_modules/

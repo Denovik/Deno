@@ -1,90 +1,160 @@
 import os
-import textwrap
-try:
-    # moviepy 2.x
-    from moviepy import (
-        VideoFileClip, AudioFileClip, CompositeVideoClip,
-        ColorClip, TextClip, concatenate_videoclips
-    )
-except ImportError:
-    # moviepy 1.x Fallback
-    from moviepy.editor import (
-        VideoFileClip, AudioFileClip, CompositeVideoClip,
-        ColorClip, TextClip, concatenate_videoclips
-    )
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont
+from moviepy import (
+    VideoFileClip, AudioFileClip, VideoClip,
+    concatenate_videoclips
+)
 from config import VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS
 
+FONT_PATH = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+FONT_SIZE_MAX = 90
+TEXT_COLOR = (255, 0, 255)       # Magenta
+STROKE_COLOR = (0, 0, 0)
+STROKE_WIDTH = 5
+WORDS_PER_CLIP = 1
+TEXT_Y_RATIO = 0.78
+MAX_TEXT_WIDTH = VIDEO_WIDTH - 60
 
-def build_video(audio_path: str, stock_video_path: str, script_text: str, output_path: str) -> str:
-    """Baut fertiges 9:16 Video aus Audio + Stock + Untertitel. Gibt Output-Pfad zurück."""
+# Cache pre-rendered text images für Performance
+_text_cache: dict = {}
+
+
+def _render_text_image(text: str) -> Image.Image:
+    """Rendert Text auf transparentem RGBA-Bild, gibt PIL Image zurück."""
+    text = text.replace("\n", " ").replace("\r", " ").strip()
+    if not text:
+        return Image.new("RGBA", (1, 1), (0, 0, 0, 0))
+    if text in _text_cache:
+        return _text_cache[text]
+
+    font_size = FONT_SIZE_MAX
+    font = None
+    bbox = None
+    while font_size >= 32:
+        font = ImageFont.truetype(FONT_PATH, font_size)
+        dummy = Image.new("RGBA", (1, 1))
+        draw = ImageDraw.Draw(dummy)
+        bbox = draw.textbbox((0, 0), text, font=font, stroke_width=STROKE_WIDTH)
+        text_w = bbox[2] - bbox[0]
+        if text_w <= MAX_TEXT_WIDTH:
+            break
+        font_size -= 4
+
+    text_h = bbox[3] - bbox[1] + STROKE_WIDTH * 2 + 16
+    canvas_w = bbox[2] - bbox[0] + STROKE_WIDTH * 2 + 16
+
+    img = Image.new("RGBA", (canvas_w, text_h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.text(
+        (STROKE_WIDTH + 8 - bbox[0], STROKE_WIDTH + 8 - bbox[1]),
+        text,
+        font=font,
+        fill=TEXT_COLOR,
+        stroke_width=STROKE_WIDTH,
+        stroke_fill=STROKE_COLOR,
+    )
+    _text_cache[text] = img
+    return img
+
+
+def _get_active_text(t: float, word_timings: list, script_text: str, duration: float):
+    """Gibt das Wort zurück, das zum Zeitpunkt t gesprochen wird."""
+    if word_timings and len(word_timings) > 1:
+        words = word_timings
+        for i in range(0, len(words), WORDS_PER_CLIP):
+            group = words[i:i + WORDS_PER_CLIP]
+            t_start = group[0]["start"]
+            next_i = i + WORDS_PER_CLIP
+            t_end = words[next_i]["start"] if next_i < len(words) else group[-1]["end"]
+            if t_start <= t < t_end:
+                return " ".join(w["word"] for w in group)
+        return None
+    else:
+        # Fallback: gleichmäßig verteilt
+        words = script_text.split()
+        groups = [words[i:i + WORDS_PER_CLIP] for i in range(0, len(words), WORDS_PER_CLIP)]
+        if not groups:
+            return None
+        chunk_dur = duration / len(groups)
+        idx = int(t / chunk_dur)
+        if idx < len(groups):
+            return " ".join(groups[idx])
+        return None
+
+
+def _make_subtitle_frame(frame: np.ndarray, t: float, word_timings: list,
+                          script_text: str, duration: float) -> np.ndarray:
+    """Blendet das aktive Wort direkt in einen RGB-Frame ein."""
+    text = _get_active_text(t, word_timings, script_text, duration)
+    if not text:
+        return frame
+
+    text_img = _render_text_image(text)
+    x = (VIDEO_WIDTH - text_img.width) // 2
+    y = int(VIDEO_HEIGHT * TEXT_Y_RATIO)
+
+    base = Image.fromarray(frame, "RGB")
+    # RGBA-Text mit Alpha-Maske auf RGB-Frame kleben
+    base.paste(text_img, (x, y), text_img)
+    return np.array(base)
+
+
+def build_video(audio_path: str, stock_video_path: str, script_text: str,
+                output_path: str, word_timings: list = None) -> str:
+    """Baut fertiges 9:16 Video aus Audio + Hintergrund + Untertitel."""
     print("[video_builder] Starte Video-Produktion...")
 
-    # Audio laden
+    _text_cache.clear()
+
     audio = AudioFileClip(audio_path)
     duration = audio.duration
 
-    # Stock-Video laden und auf Audio-Länge anpassen
+    # Stock-Video laden und anpassen
     stock = VideoFileClip(stock_video_path)
     if stock.duration < duration:
-        # Video loopen wenn zu kurz
         loops = int(duration / stock.duration) + 1
         stock = concatenate_videoclips([stock] * loops)
-    stock = stock.subclip(0, duration)
+    stock = stock.subclipped(0, duration)
 
-    # Auf 9:16 Hochformat zuschneiden (1080x1920)
+    # Auf 9:16 zuschneiden
     stock_ratio = stock.w / stock.h
     target_ratio = VIDEO_WIDTH / VIDEO_HEIGHT
-
     if stock_ratio > target_ratio:
-        # Video zu breit → Breite anpassen, Höhe skalieren
-        new_height = VIDEO_HEIGHT
-        new_width = int(stock.w * (VIDEO_HEIGHT / stock.h))
-        stock = stock.resize(height=new_height)
-        x_center = (new_width - VIDEO_WIDTH) // 2
-        stock = stock.crop(x1=x_center, y1=0, x2=x_center + VIDEO_WIDTH, y2=VIDEO_HEIGHT)
+        stock = stock.resized(height=VIDEO_HEIGHT)
+        x_center = (stock.w - VIDEO_WIDTH) // 2
+        stock = stock.cropped(x1=x_center, y1=0, x2=x_center + VIDEO_WIDTH, y2=VIDEO_HEIGHT)
     else:
-        # Video zu hoch → Höhe anpassen, Breite skalieren
-        new_width = VIDEO_WIDTH
-        stock = stock.resize(width=new_width)
+        stock = stock.resized(width=VIDEO_WIDTH)
         if stock.h > VIDEO_HEIGHT:
             y_center = (stock.h - VIDEO_HEIGHT) // 2
-            stock = stock.crop(x1=0, y1=y_center, x2=VIDEO_WIDTH, y2=y_center + VIDEO_HEIGHT)
+            stock = stock.cropped(x1=0, y1=y_center, x2=VIDEO_WIDTH, y2=y_center + VIDEO_HEIGHT)
 
-    # Leichte Abdunklung für bessere Lesbarkeit
-    dark_overlay = ColorClip(size=(VIDEO_WIDTH, VIDEO_HEIGHT), color=[0, 0, 0], duration=duration)
-    dark_overlay = dark_overlay.set_opacity(0.4)
+    wt = word_timings or []
 
-    # Audio setzen
-    stock = stock.set_audio(audio)
+    def make_frame(t):
+        # Hintergrund-Frame holen (numpy array, shape: H x W x 3)
+        frame = stock.get_frame(t).copy().astype(np.float32)
 
-    # Untertitel erstellen — Text in Zeilen aufteilen
-    lines = textwrap.wrap(script_text, width=30)
-    words_per_chunk = 6
-    chunks = [" ".join(lines[i:i+words_per_chunk]) for i in range(0, len(lines), words_per_chunk)]
-    if not chunks:
-        chunks = [script_text[:100]]
+        # Dunkles Overlay: einfach mit numpy multiplizieren
+        frame *= 0.65
 
-    text_clips = []
-    chunk_duration = duration / len(chunks)
-    for i, chunk in enumerate(chunks):
-        txt = TextClip(
-            chunk,
-            fontsize=60,
-            color="white",
-            font="Arial-Bold",
-            stroke_color="black",
-            stroke_width=2,
-            method="caption",
-            size=(VIDEO_WIDTH - 80, None),
-            align="center",
-        )
-        txt = txt.set_position(("center", VIDEO_HEIGHT - 400))
-        txt = txt.set_start(i * chunk_duration).set_duration(chunk_duration)
-        text_clips.append(txt)
+        # Aktives Wort einbrennen
+        text = _get_active_text(t, wt, script_text, duration)
+        if text:
+            text_arr = np.array(_render_text_image(text))  # H x W x 4 (RGBA)
+            alpha = text_arr[:, :, 3:4].astype(np.float32) / 255.0
+            rgb = text_arr[:, :, :3].astype(np.float32)
+            th, tw = text_arr.shape[:2]
+            x = (VIDEO_WIDTH - tw) // 2
+            y = int(VIDEO_HEIGHT * TEXT_Y_RATIO)
+            # Alpha-Composite nur auf den relevanten Ausschnitt
+            region = frame[y:y + th, x:x + tw]
+            frame[y:y + th, x:x + tw] = region * (1.0 - alpha) + rgb * alpha
 
-    # Video zusammenbauen
-    final = CompositeVideoClip([stock, dark_overlay] + text_clips)
-    final = final.set_duration(duration)
+        return frame.astype(np.uint8)
+
+    final = VideoClip(make_frame, duration=duration).with_audio(audio)
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     final.write_videofile(
@@ -94,7 +164,6 @@ def build_video(audio_path: str, stock_video_path: str, script_text: str, output
         audio_codec="aac",
         temp_audiofile=output_path + ".temp.m4a",
         remove_temp=True,
-        verbose=False,
         logger=None,
     )
 
