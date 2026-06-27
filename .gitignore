@@ -41,6 +41,9 @@ data/*.log
 outputs/
 backgrounds/*.mp4
 backgrounds/*.mov
+music/*.mp3
+music/*.m4a
+music/*.wav
 
 # --- Node (falls genutzt) ---
 node_modules/

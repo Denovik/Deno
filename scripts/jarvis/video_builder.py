@@ -1,11 +1,16 @@
 import os
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+import glob
+import random
 from moviepy import (
     VideoFileClip, AudioFileClip, VideoClip,
-    concatenate_videoclips
+    CompositeAudioClip, concatenate_videoclips, concatenate_audioclips
 )
-from config import VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS
+from config import VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS, BASE_DIR
+
+MUSIC_DIR = os.path.join(BASE_DIR, "music")
+MUSIC_VOLUME = 0.12   # 12% Lautstärke — Hintergrund, übertönt die Stimme nicht
 
 FONT_PATH = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
 FONT_SIZE_MAX = 90
@@ -100,6 +105,29 @@ def _make_subtitle_frame(frame: np.ndarray, t: float, word_timings: list,
     return np.array(base)
 
 
+def _add_background_music(voice_audio, duration):
+    """Mischt eine zufällige Musik aus music/ leise unter die Stimme. Ohne Musik: unverändert."""
+    music_files = (
+        glob.glob(os.path.join(MUSIC_DIR, "*.mp3"))
+        + glob.glob(os.path.join(MUSIC_DIR, "*.m4a"))
+        + glob.glob(os.path.join(MUSIC_DIR, "*.wav"))
+    )
+    if not music_files:
+        return voice_audio
+
+    track_path = random.choice(music_files)
+    music = AudioFileClip(track_path)
+
+    # Musik auf Videolänge bringen (loopen falls zu kurz, sonst zuschneiden)
+    if music.duration < duration:
+        loops = int(duration / music.duration) + 1
+        music = concatenate_audioclips([music] * loops)
+    music = music.subclipped(0, duration).with_volume_scaled(MUSIC_VOLUME)
+
+    print(f"[video_builder] Hintergrundmusik: {os.path.basename(track_path)} ({int(MUSIC_VOLUME*100)}%)")
+    return CompositeAudioClip([voice_audio, music])
+
+
 def build_video(audio_path: str, stock_video_path: str, script_text: str,
                 output_path: str, word_timings: list = None) -> str:
     """Baut fertiges 9:16 Video aus Audio + Hintergrund + Untertitel."""
@@ -109,6 +137,9 @@ def build_video(audio_path: str, stock_video_path: str, script_text: str,
 
     audio = AudioFileClip(audio_path)
     duration = audio.duration
+
+    # Hintergrundmusik leise dazumischen (falls vorhanden)
+    audio = _add_background_music(audio, duration)
 
     # Stock-Video laden und anpassen
     stock = VideoFileClip(stock_video_path)
