@@ -10,6 +10,14 @@
 
 ## 2026-06-27
 
+### Jarvis Voice-Interface gebaut
+
+- `scripts/jarvis/voice_chat.py` — mit Jarvis sprechen, er antwortet mit Stimme
+- Lokale Spracherkennung (faster-whisper, kostenlos/offline), Claude als Gehirn, ElevenLabs-Stimme
+- Jarvis kennt Dennis' Business-Kontext (lädt `context/`-Dateien)
+- Kette getestet: Spracherkennung erkannte deutschen Testsatz wortgenau, Jarvis antwortet im richtigen Ton
+- Plan: `plans/2026-06-27-jarvis-voice-interface.md`
+
 ### Jarvis: Untertitel, Musik, Titel & Plattform-Anbindung
 
 - Untertitel-Sync gefixt (frame-genaues Einbrennen Wort für Wort, kein Overlap)

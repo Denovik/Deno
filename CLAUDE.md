@@ -105,6 +105,7 @@ Wir bauen den Mitarbeiter in Teilen auf. Jeder Teil ist für sich nützlich, und
 | `reference/` | Hilfsdokumente und Vorlagen. |
 | `scripts/` | Automatisierungs-Skripte. Werden mit neuen Fähigkeiten ergänzt. |
 | `scripts/jarvis/` | Jarvis Content Bot — vollautomatische Video-Pipeline für TikTok/Instagram/YouTube. Start: `python3 scripts/jarvis/run.py` |
+| `scripts/jarvis/voice_chat.py` | Jarvis Voice-Interface — mit Jarvis sprechen, er antwortet mit Stimme. Start: `python3 scripts/jarvis/voice_chat.py` (Enter → sprechen → Enter) |
 | `shares/` | Fertig verpackte Systeme zum Weitergeben. |
 
 ---
