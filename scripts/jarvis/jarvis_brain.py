@@ -9,6 +9,7 @@ import anthropic
 from config import (
     ANTHROPIC_API_KEY, ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID_DE, BASE_DIR
 )
+import jarvis_actions
 
 WHISPER_MODEL = "small"          # guter Kompromiss Genauigkeit/Tempo
 CLAUDE_MODEL = "claude-sonnet-4-6"
@@ -34,8 +35,32 @@ SYSTEM_PROMPT = (
     "(2-4 Sätze, wie im echten Gespräch), ohne Aufzählungen, Markdown oder Code. "
     "Du bist sein professioneller, freundlicher Mitarbeiter. Du kennst sein Business "
     "(siehe Kontext) und denkst mit. Wenn du etwas nicht weißt, sag es ehrlich.\n\n"
+    "WICHTIG: Du kannst nicht nur reden, sondern auch HANDELN. Wenn Dennis dich bittet, "
+    "Videos zu erstellen oder zu posten / die Pipeline zu starten, dann FÜHRE das mit deinem "
+    "Werkzeug 'video_pipeline_starten' aus — sag nicht, er solle es selbst im Terminal machen. "
+    "Du HAST Zugriff darauf. Mit 'pipeline_status' kannst du nachsehen, ob eine Produktion läuft.\n\n"
     "=== KONTEXT ÜBER DENNIS UND SEIN BUSINESS ===\n" + load_context()
 )
+
+# Werkzeuge, die Jarvis tatsächlich ausführen kann
+TOOLS = [
+    {
+        "name": "video_pipeline_starten",
+        "description": "Startet die Jarvis Content-Pipeline: erstellt automatisch Videos (Skript, Stimme, Untertitel, Musik) und postet sie auf YouTube und Instagram. Nutze das, wenn Dennis sagt, er will jetzt Videos erstellen/posten oder die Pipeline starten/ausführen.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "anzahl": {"type": "integer", "description": "Anzahl der Videos (Standard 1, maximal 4)"}
+            },
+            "required": [],
+        },
+    },
+    {
+        "name": "pipeline_status",
+        "description": "Prüft, ob gerade eine Video-Produktion läuft und wie die letzte ausging.",
+        "input_schema": {"type": "object", "properties": {}, "required": []},
+    },
+]
 
 
 def get_whisper():
@@ -61,17 +86,40 @@ def make_client():
 
 
 def think(client, history: list, user_text: str) -> str:
-    """Schickt die Frage an Claude (mit Gesprächsverlauf) und gibt die Antwort zurück."""
+    """Schickt die Frage an Claude (mit Werkzeugen + Gesprächsverlauf) und gibt die Antwort zurück.
+    Führt aus, was Jarvis anfordert (z.B. Pipeline starten), bevor er antwortet."""
     history.append({"role": "user", "content": user_text})
-    message = client.messages.create(
-        model=CLAUDE_MODEL,
-        max_tokens=400,
-        system=SYSTEM_PROMPT,
-        messages=history,
-    )
-    answer = message.content[0].text.strip()
-    history.append({"role": "assistant", "content": answer})
-    return answer
+
+    for _ in range(5):   # Sicherheitslimit gegen Endlosschleifen
+        message = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=500,
+            system=SYSTEM_PROMPT,
+            tools=TOOLS,
+            messages=history,
+        )
+        history.append({"role": "assistant", "content": message.content})
+
+        if message.stop_reason != "tool_use":
+            # Fertig — Text aus den Blöcken zusammensetzen
+            text = " ".join(b.text for b in message.content if b.type == "text").strip()
+            return text
+
+        # Werkzeuge ausführen und Ergebnisse zurückgeben
+        results = []
+        for block in message.content:
+            if block.type == "tool_use":
+                func = jarvis_actions.ACTIONS.get(block.name)
+                output = func(**block.input) if func else f"Unbekannte Aktion: {block.name}"
+                print(f"[jarvis_brain] Aktion ausgeführt: {block.name}({block.input}) → {output[:60]}...")
+                results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": output,
+                })
+        history.append({"role": "user", "content": results})
+
+    return "Ich konnte die Aktion gerade nicht sauber abschließen — versuch es bitte nochmal."
 
 
 def synthesize(text: str) -> bytes:
