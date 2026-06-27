@@ -13,7 +13,7 @@
 
 ---
 
-**Stand:** 27.06.2026
+**Stand:** 27.06.2026 (automatisch abgerufen)
 
 ## Kennzahlen
 
@@ -21,8 +21,10 @@
 |---|---|---|
 | Monatliche Einnahmen | 0 € | Aufbauphase, noch kein Einkommen |
 | TikTok Follower | 1.701 | Beste Ausgangsbasis, Priorität 1 |
-| Instagram Follower | unbekannt | Account vorhanden, kein Content bisher |
-| YouTube Abonnenten | unbekannt | Account vorhanden, kein Content bisher |
+| Instagram Follower | 0 | Stand 27.06.2026 |
+| Instagram Posts | 2 | Stand 27.06.2026 |
+| YouTube Abonnenten | 0 | Stand 27.06.2026 |
+| YouTube Views gesamt | 0 | Stand 27.06.2026 |
 | Plattform-Monetarisierung | nicht aktiv | Follower-Schwellen noch nicht erreicht |
 | Monatliches Ziel | 2.000 € | Bis Dezember 2026 |
 
@@ -49,14 +51,7 @@ Solo. Dennis trägt alles allein. Zeit ist vorhanden, Budget ist sehr begrenzt.
 
 ## Datenquellen
 
-Aktuell keine automatischen Quellen. Zahlen werden von Hand gepflegt.
-
----
-
-## Automatisierungs-Notiz
-
-_Aktuell statischer Stand, von Hand gepflegt. Sobald `daten` läuft, kommen diese Zahlen automatisch aus deinen echten Quellen._
-
----
-
-_Regelmäßig aktualisieren. Veraltete Zahlen schwächen deinen Mitarbeiter als analytischen Partner._
+- **YouTube:** automatisch via YouTube Data API v3 (täglich 08:00)
+- **Instagram:** automatisch via Instagram Graph API (täglich 08:00)
+- **TikTok:** noch manuell (nach Review-Freigabe automatisierbar)
+- Manueller Abruf: `python3 scripts/daten/fetch_stats.py`
