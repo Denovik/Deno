@@ -15,7 +15,7 @@ def get_stock_video(niche: str, duration_seconds: int = 60) -> str:
         "query": query,
         "orientation": "portrait",
         "size": "medium",
-        "per_page": 10,
+        "per_page": 30,
     }
 
     response = requests.get("https://api.pexels.com/videos/search", headers=headers, params=params)

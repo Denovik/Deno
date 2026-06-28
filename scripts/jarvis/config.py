@@ -55,7 +55,13 @@ NICHES = {
             "Build tension. End with: 'Follow me for more.' "
             "Write ONLY the spoken text, no stage directions, no brackets."
         ),
-        "pexels_keywords": ["sunset mountain", "running athlete", "city success", "motivation sunrise", "winner podium"],
+        "pexels_keywords": [
+            "sunset mountain", "running athlete", "city success", "motivation sunrise", "winner podium",
+            "boxing training", "road highway", "skyscraper city", "ocean waves", "forest running",
+            "gym workout", "night city lights", "climbing mountain", "sprinting track", "eagle flying",
+            "storm lightning", "waterfall nature", "dark street rain", "rooftop city", "fire flames",
+            "sunrise beach", "abstract energy", "stock market", "entrepreneur office", "luxury car",
+        ],
     },
     "fakten": {
         "name_de": "Fakten & Wissen",
@@ -76,7 +82,13 @@ NICHES = {
             "End with: 'Follow me for more amazing facts.' "
             "Write ONLY the spoken text, no stage directions."
         ),
-        "pexels_keywords": ["space galaxy", "ocean deep", "nature wildlife", "science laboratory", "earth aerial"],
+        "pexels_keywords": [
+            "space galaxy", "ocean deep", "nature wildlife", "science laboratory", "earth aerial",
+            "underwater coral", "brain neuron", "volcano eruption", "northern lights", "desert dunes",
+            "microscope cells", "robot technology", "ancient ruins", "deep sea creatures", "tornado storm",
+            "solar system", "dna molecule", "quantum physics", "rainforest jungle", "arctic ice",
+            "satellite earth", "cave exploration", "black hole space", "crystal minerals", "city timelapse",
+        ],
     },
 }
 
