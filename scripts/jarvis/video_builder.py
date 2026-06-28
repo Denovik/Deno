@@ -23,7 +23,7 @@ TEXT_COLOR = (255, 0, 255)       # Magenta
 STROKE_COLOR = (0, 0, 0)
 STROKE_WIDTH = 5
 WORDS_PER_CLIP = 1
-TEXT_Y_RATIO = 0.78
+TEXT_Y_RATIO = 0.50
 MAX_TEXT_WIDTH = VIDEO_WIDTH - 60
 
 # Cache pre-rendered text images für Performance
