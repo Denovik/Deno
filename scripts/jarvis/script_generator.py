@@ -4,6 +4,28 @@ from datetime import datetime
 from config import ANTHROPIC_API_KEY, NICHES, SCRIPTS_DIR
 
 
+def _get_recent_scripts(niche: str, language: str, count: int = 15) -> list[str]:
+    """Liest die letzten N Skripte dieser Nische+Sprache aus dem Skript-Ordner."""
+    if not os.path.exists(SCRIPTS_DIR):
+        return []
+    files = sorted(
+        [f for f in os.listdir(SCRIPTS_DIR) if f.endswith(f"-{niche}-{language}.txt")],
+        reverse=True
+    )[:count]
+    scripts = []
+    for fname in files:
+        try:
+            with open(os.path.join(SCRIPTS_DIR, fname), encoding="utf-8") as f:
+                content = f.read()
+                # Nur den eigentlichen Text (nach dem Header)
+                parts = content.split("=" * 60 + "\n", 1)
+                if len(parts) > 1:
+                    scripts.append(parts[1].strip()[:300])
+        except Exception:
+            pass
+    return scripts
+
+
 def generate_script(niche: str, language: str) -> str:
     """Generiert ein Skript per Claude API. Gibt den fertigen Text zurück."""
     if niche not in NICHES:
@@ -14,6 +36,14 @@ def generate_script(niche: str, language: str) -> str:
     niche_config = NICHES[niche]
     prompt_key = f"prompt_{language}"
     system_prompt = niche_config[prompt_key]
+
+    # Letzte Skripte laden und als Kontext mitgeben
+    recent = _get_recent_scripts(niche, language)
+    if recent:
+        avoid_block = "\n\nWICHTIG: Diese Themen und Einstiege wurden bereits verwendet — NICHT wiederholen, komplett neues Thema wählen:\n"
+        for i, s in enumerate(recent, 1):
+            avoid_block += f"\n[{i}] {s[:200]}...\n"
+        system_prompt = system_prompt + avoid_block
 
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
