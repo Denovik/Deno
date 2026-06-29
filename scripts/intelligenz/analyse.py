@@ -224,6 +224,66 @@ def aktualisiere_kontext(analyse: str):
 
 # ── Haupt-Ablauf ───────────────────────────────────────────────────────────────
 
+def update_48h_views(yt_videos):
+    """Trägt 48h-Views für Videos im Performance-Log nach und aktualisiert Gewichte."""
+    try:
+        sys.path.insert(0, str(BASE_DIR / "scripts" / "jarvis"))
+        from performance_tracker import get_videos_ready_for_48h_check, update_views, update_niche_weights
+
+        ready = get_videos_ready_for_48h_check()
+        if not ready:
+            print("[intelligenz] Keine Videos bereit für 48h-Check.")
+            return
+
+        # YouTube-Views mit Log-Einträgen abgleichen
+        yt_view_map = {v.get("id"): v.get("views", 0) for v in yt_videos if v.get("id")}
+        updated = 0
+        for entry in ready:
+            yt_id = entry.get("youtube_id")
+            if yt_id and yt_id in yt_view_map:
+                update_views(yt_id, yt_view_map[yt_id])
+                updated += 1
+
+        if updated:
+            print(f"[intelligenz] {updated} Videos mit 48h-Views aktualisiert.")
+            update_niche_weights(yt_videos)
+        else:
+            print("[intelligenz] Keine YouTube-IDs gefunden — Gewichte unverändert.")
+
+    except Exception as e:
+        print(f"[intelligenz] 48h-Update fehlgeschlagen: {e}")
+
+
+def analysiere_ab_tests():
+    """Gibt eine Übersicht über laufende und abgeschlossene A/B-Tests zurück."""
+    try:
+        sys.path.insert(0, str(BASE_DIR / "scripts" / "jarvis"))
+        from performance_tracker import _load_log
+        log = _load_log()
+        ab_entries = [e for e in log if e.get("ab_variant")]
+        if not ab_entries:
+            return ""
+
+        lines = ["\n## A/B-Tests\n"]
+        # Gruppiere nach Label-Prefix (ohne A/B-Suffix)
+        pairs = {}
+        for e in ab_entries:
+            base = e["label"].rsplit("-", 1)[0] if e["label"].endswith(("-A", "-B")) else e["label"]
+            pairs.setdefault(base, []).append(e)
+
+        for base, variants in pairs.items():
+            lines.append(f"**{base}**")
+            for v in variants:
+                views = v.get("views_48h", "ausstehend")
+                lines.append(f"  - Variante {v['ab_variant']}: {views} Views")
+            if len(variants) == 2 and all(v.get("views_48h") for v in variants):
+                winner = max(variants, key=lambda x: x["views_48h"])
+                lines.append(f"  → Gewinner: Variante {winner['ab_variant']} ({winner['views_48h']} Views)")
+        return "\n".join(lines)
+    except Exception:
+        return ""
+
+
 def main():
     print(f"[intelligenz] Starte Analyse ({TODAY_DE}) ...")
 
@@ -233,12 +293,21 @@ def main():
     ig = fetch_instagram_reels()
     print(f"[intelligenz] Instagram: {len(ig)} Reels abgerufen")
 
+    # 48h-Views nachtragen und Nischen-Gewichte aktualisieren
+    update_48h_views(yt)
+
     if not yt and not ig:
         print("[intelligenz] Keine Daten — Analyse übersprungen.")
         return
 
     print("[intelligenz] Claude analysiert ...")
     analyse = analysiere(yt, ig)
+
+    # A/B-Test-Ergebnisse anhängen
+    ab_info = analysiere_ab_tests()
+    if ab_info:
+        analyse += ab_info
+
     print("[intelligenz] Analyse fertig.")
 
     pfad = speichere_bericht(analyse, yt, ig)

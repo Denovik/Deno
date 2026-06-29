@@ -5,11 +5,26 @@ from datetime import datetime
 from config import PEXELS_API_KEY, NICHES, TEMP_DIR
 
 
-def get_stock_videos(niche: str, count: int = 4) -> list[str]:
-    """Holt mehrere verschiedene Stock-Videos mit unterschiedlichen Keywords."""
-    keywords = NICHES[niche]["pexels_keywords"].copy()
-    random.shuffle(keywords)
-    selected_keywords = keywords[:count]
+def get_stock_videos(niche, count=4, keywords=None):
+    """Holt mehrere verschiedene Stock-Videos mit unterschiedlichen Keywords.
+
+    Wenn keywords übergeben wird: diese direkt verwenden.
+    Sonst: zufällige Keywords aus der Nischen-Konfiguration.
+    """
+    if keywords and len(keywords) > 0:
+        # Keywords aus Skript-Analyse verwenden
+        selected_keywords = keywords[:count]
+        # Auffüllen falls zu wenig
+        if len(selected_keywords) < count:
+            fallback = NICHES[niche]["pexels_keywords"].copy()
+            random.shuffle(fallback)
+            selected_keywords = selected_keywords + fallback[:(count - len(selected_keywords))]
+    else:
+        # Bisheriges Verhalten: zufällig aus Nische
+        niche_keywords = NICHES[niche]["pexels_keywords"].copy()
+        random.shuffle(niche_keywords)
+        selected_keywords = niche_keywords[:count]
+
     paths = []
     for kw in selected_keywords:
         try:
@@ -22,7 +37,7 @@ def get_stock_videos(niche: str, count: int = 4) -> list[str]:
     return paths
 
 
-def _fetch_one_video(query: str, niche: str) -> str:
+def _fetch_one_video(query, niche):
     """Holt ein einzelnes Video für einen Suchbegriff."""
     headers = {"Authorization": PEXELS_API_KEY}
     params = {"query": query, "orientation": "portrait", "size": "medium", "per_page": 30}
@@ -50,7 +65,7 @@ def _fetch_one_video(query: str, niche: str) -> str:
     return video_path
 
 
-def get_stock_video(niche: str, duration_seconds: int = 60) -> str:
+def get_stock_video(niche, duration_seconds=60):
     """Holt ein passendes Stock-Video von Pexels. Gibt Pfad zur heruntergeladenen Datei zurück."""
     keywords = NICHES[niche]["pexels_keywords"]
     query = random.choice(keywords)

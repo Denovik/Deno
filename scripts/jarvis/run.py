@@ -25,9 +25,10 @@ from video_builder import build_video
 from poster_youtube import upload_to_youtube
 from poster_instagram import post_to_instagram
 from poster_tiktok import post_to_tiktok
+from performance_tracker import log_video, build_weighted_combos
 
 
-def make_one_video(niche, language, dry_run=False):
+def make_one_video(niche, language, dry_run=False, ab_variant=None):
     """Produziert und postet ein Video. Gibt Ergebnis-Dict zurück."""
     ts = datetime.now().strftime("%Y-%m-%d_%H%M")
     label = f"{ts}-{niche}-{language}"
@@ -65,16 +66,19 @@ def make_one_video(niche, language, dry_run=False):
     results = {"label": label, "video_path": video_path}
 
     # 7. Auf Plattformen posten
+    youtube_id = None
+    instagram_id = None
+
     try:
-        vid_id = upload_to_youtube(video_path, title, description, tags)
-        results["youtube"] = vid_id
+        youtube_id = upload_to_youtube(video_path, title, description, tags)
+        results["youtube"] = youtube_id
     except Exception as e:
         print(f"[jarvis] YouTube fehlgeschlagen: {e}")
         results["youtube"] = f"FEHLER: {e}"
 
     try:
-        ig_id = post_to_instagram(video_path, title, language, niche)
-        results["instagram"] = ig_id
+        instagram_id = post_to_instagram(video_path, title, language, niche)
+        results["instagram"] = instagram_id
     except Exception as e:
         print(f"[jarvis] Instagram fehlgeschlagen: {e}")
         results["instagram"] = f"FEHLER: {e}"
@@ -108,21 +112,38 @@ def make_one_video(niche, language, dry_run=False):
         except Exception:
             pass
 
+    # 8. Performance loggen
+    log_video(label, niche, language, youtube_id=youtube_id, instagram_id=instagram_id, ab_variant=ab_variant)
+
     print(f"[jarvis] Video fertig: {label}")
     return results
 
 
-def run_daily(count=4, dry_run=False):
-    """Produziert `count` Videos mit gemischten Nischen und Sprachen."""
-    # 70% Deutsch, 30% Englisch
-    combos = [(n, "de") for n in NICHES.keys()] * 7 + [(n, "en") for n in NICHES.keys()] * 3
-    random.shuffle(combos)
-    selected = (combos * ((count // len(combos)) + 1))[:count]
+def make_ab_test(niche, language, dry_run=False):
+    """Erstellt zwei Varianten (A + B) für denselben Nische/Sprache-Slot."""
+    print(f"\n[jarvis] A/B-Test: {niche} / {language}")
+    result_a = make_one_video(niche, language, dry_run=dry_run, ab_variant="A")
+    result_b = make_one_video(niche, language, dry_run=dry_run, ab_variant="B")
+    return [result_a, result_b]
+
+
+def run_daily(count=1, dry_run=False):
+    """Produziert `count` Videos mit gewichteten Nischen und Sprachen."""
+    # Gewichtete Nischen-Auswahl basierend auf Performance (Fallback: 70/30 DE/EN)
+    selected = build_weighted_combos(NICHES, count)
 
     all_results = []
+    ab_done_this_run = False
+
     for niche, lang in selected:
-        result = make_one_video(niche, lang, dry_run=dry_run)
-        all_results.append(result)
+        # 25% Chance auf A/B-Test (max einmal pro Lauf)
+        if not ab_done_this_run and not dry_run and random.random() < 0.25:
+            results = make_ab_test(niche, lang, dry_run=dry_run)
+            all_results.extend(results)
+            ab_done_this_run = True
+        else:
+            result = make_one_video(niche, lang, dry_run=dry_run)
+            all_results.append(result)
 
     # Tages-Report ausgeben
     print(f"\n{'='*50}")

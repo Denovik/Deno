@@ -22,12 +22,18 @@ FONT_SIZE_MAX = 90
 TEXT_COLOR = (255, 0, 255)       # Magenta
 STROKE_COLOR = (0, 0, 0)
 STROKE_WIDTH = 5
-WORDS_PER_CLIP = 1
+WORDS_PER_CLIP = 2
 TEXT_Y_RATIO = 0.50
 MAX_TEXT_WIDTH = VIDEO_WIDTH - 60
 
+INTRO_DURATION = 2.0
+OUTRO_DURATION = 2.0
+FADE_DURATION = 0.4
+
 # Cache pre-rendered text images für Performance
+# Key: (text, active_word) Tuple
 _text_cache = {}
+_outro_cache = None
 
 
 def _get_dynamic_font_size(text):
@@ -41,18 +47,26 @@ def _get_dynamic_font_size(text):
         return 60
 
 
-def _render_text_image(text):
-    """Rendert Text auf transparentem RGBA-Bild, gibt PIL Image zurück."""
+def _render_text_image(text, active_word=None):
+    """Rendert Text auf transparentem RGBA-Bild, gibt PIL Image zurück.
+    Wenn active_word übergeben wird, wird dieses Wort in Magenta gerendert,
+    alle anderen Wörter in Weiß.
+    """
     text = text.replace("\n", " ").replace("\r", " ").strip()
     if not text:
         return Image.new("RGBA", (1, 1), (0, 0, 0, 0))
-    if text in _text_cache:
-        return _text_cache[text]
+
+    cache_key = (text, active_word)
+    if cache_key in _text_cache:
+        return _text_cache[cache_key]
+
+    words = text.split()
 
     # Dynamische Schriftgröße basierend auf Textlänge
     font_size = _get_dynamic_font_size(text)
     font = None
-    bbox = None
+
+    # Schriftgröße bestimmen die passt
     while font_size >= 32:
         font = ImageFont.truetype(FONT_PATH, font_size)
         dummy = Image.new("RGBA", (1, 1))
@@ -63,25 +77,55 @@ def _render_text_image(text):
             break
         font_size -= 4
 
+    # Gesamt-Bounding-Box für Canvas-Größe
+    dummy = Image.new("RGBA", (1, 1))
+    draw = ImageDraw.Draw(dummy)
+    bbox = draw.textbbox((0, 0), text, font=font, stroke_width=STROKE_WIDTH)
     text_h = bbox[3] - bbox[1] + STROKE_WIDTH * 2 + 16
     canvas_w = bbox[2] - bbox[0] + STROKE_WIDTH * 2 + 16
 
     img = Image.new("RGBA", (canvas_w, text_h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    draw.text(
-        (STROKE_WIDTH + 8 - bbox[0], STROKE_WIDTH + 8 - bbox[1]),
-        text,
-        font=font,
-        fill=TEXT_COLOR,
-        stroke_width=STROKE_WIDTH,
-        stroke_fill=STROKE_COLOR,
-    )
-    _text_cache[text] = img
+
+    if active_word is None or len(words) <= 1:
+        # Einfarbig: alles in TEXT_COLOR
+        draw.text(
+            (STROKE_WIDTH + 8 - bbox[0], STROKE_WIDTH + 8 - bbox[1]),
+            text,
+            font=font,
+            fill=TEXT_COLOR,
+            stroke_width=STROKE_WIDTH,
+            stroke_fill=STROKE_COLOR,
+        )
+    else:
+        # Wort für Wort rendern mit unterschiedlichen Farben
+        # Berechne x-Position jedes Wortes einzeln
+        x_offset = STROKE_WIDTH + 8 - bbox[0]
+        y_pos = STROKE_WIDTH + 8 - bbox[1]
+        space_w = draw.textlength(" ", font=font)
+
+        for i, word in enumerate(words):
+            color = TEXT_COLOR if word.lower() == active_word.lower() else (255, 255, 255)
+            draw.text(
+                (x_offset, y_pos),
+                word,
+                font=font,
+                fill=color,
+                stroke_width=STROKE_WIDTH,
+                stroke_fill=STROKE_COLOR,
+            )
+            word_w = draw.textlength(word, font=font)
+            x_offset += word_w + space_w
+
+    _text_cache[cache_key] = img
     return img
 
 
-def _get_active_text(t, word_timings, script_text, duration):
-    """Gibt das Wort zurück, das zum Zeitpunkt t gesprochen wird."""
+def _get_text_and_active(t, word_timings, script_text, duration):
+    """Gibt (display_text, active_word) zurück.
+    display_text ist die aktuelle 2-Wort-Gruppe.
+    active_word ist das Wort das gerade gesprochen wird.
+    """
     if word_timings and len(word_timings) > 1:
         words = word_timings
         for i in range(0, len(words), WORDS_PER_CLIP):
@@ -90,19 +134,85 @@ def _get_active_text(t, word_timings, script_text, duration):
             next_i = i + WORDS_PER_CLIP
             t_end = words[next_i]["start"] if next_i < len(words) else group[-1]["end"]
             if t_start <= t < t_end:
-                return " ".join(w["word"] for w in group)
-        return None
+                display_text = " ".join(w["word"] for w in group)
+                # Aktives Wort bestimmen
+                active_word = None
+                for w in group:
+                    if w["start"] <= t < w["end"]:
+                        active_word = w["word"]
+                        break
+                if active_word is None:
+                    active_word = group[0]["word"]
+                return display_text, active_word
+        return None, None
     else:
         # Fallback: gleichmäßig verteilt
         words = script_text.split()
         groups = [words[i:i + WORDS_PER_CLIP] for i in range(0, len(words), WORDS_PER_CLIP)]
         if not groups:
-            return None
+            return None, None
         chunk_dur = duration / len(groups)
         idx = int(t / chunk_dur)
         if idx < len(groups):
-            return " ".join(groups[idx])
-        return None
+            display_text = " ".join(groups[idx])
+            # Erstes Wort der Gruppe als aktiv markieren (einfacher Fallback)
+            active_word = groups[idx][0]
+            return display_text, active_word
+        return None, None
+
+
+def _render_outro_frame():
+    """Rendert den Outro-Frame mit MINDWAVE Branding. Gecacht."""
+    global _outro_cache
+    if _outro_cache is not None:
+        return _outro_cache
+
+    frame = np.zeros((VIDEO_HEIGHT, VIDEO_WIDTH, 3), dtype=np.float32)
+    img = Image.fromarray(frame.astype(np.uint8), "RGB")
+    draw = ImageDraw.Draw(img)
+
+    # MINDWAVE — groß, Magenta
+    try:
+        font_big = ImageFont.truetype(FONT_PATH, 120)
+        font_small = ImageFont.truetype(FONT_PATH, 50)
+    except Exception:
+        font_big = ImageFont.load_default()
+        font_small = font_big
+
+    # "MINDWAVE" zentriert
+    text_main = "MINDWAVE"
+    bbox_main = draw.textbbox((0, 0), text_main, font=font_big, stroke_width=STROKE_WIDTH)
+    w_main = bbox_main[2] - bbox_main[0]
+    x_main = (VIDEO_WIDTH - w_main) // 2
+    y_main = VIDEO_HEIGHT // 2 - 100
+
+    draw.text(
+        (x_main - bbox_main[0], y_main - bbox_main[1]),
+        text_main,
+        font=font_big,
+        fill=TEXT_COLOR,
+        stroke_width=STROKE_WIDTH,
+        stroke_fill=STROKE_COLOR,
+    )
+
+    # "@mindwaves" darunter, Weiß
+    text_sub = "@mindwaves"
+    bbox_sub = draw.textbbox((0, 0), text_sub, font=font_small, stroke_width=STROKE_WIDTH)
+    w_sub = bbox_sub[2] - bbox_sub[0]
+    x_sub = (VIDEO_WIDTH - w_sub) // 2
+    y_sub = y_main + (bbox_main[3] - bbox_main[1]) + 40
+
+    draw.text(
+        (x_sub - bbox_sub[0], y_sub - bbox_sub[1]),
+        text_sub,
+        font=font_small,
+        fill=(255, 255, 255),
+        stroke_width=STROKE_WIDTH,
+        stroke_fill=STROKE_COLOR,
+    )
+
+    _outro_cache = np.array(img).astype(np.float32)
+    return _outro_cache
 
 
 def _apply_ken_burns(frame, segment_index, segment_progress):
@@ -135,22 +245,6 @@ def _apply_ken_burns(frame, segment_index, segment_progress):
     cropped = zoomed[y_start:y_start + h, x_start:x_start + w]
 
     return cropped
-
-
-def _make_subtitle_frame(frame, t, word_timings, script_text, duration):
-    """Blendet das aktive Wort direkt in einen RGB-Frame ein."""
-    text = _get_active_text(t, word_timings, script_text, duration)
-    if not text:
-        return frame
-
-    text_img = _render_text_image(text)
-    x = (VIDEO_WIDTH - text_img.width) // 2
-    y = int(VIDEO_HEIGHT * TEXT_Y_RATIO)
-
-    base = Image.fromarray(frame, "RGB")
-    # RGBA-Text mit Alpha-Maske auf RGB-Frame kleben
-    base.paste(text_img, (x, y), text_img)
-    return np.array(base)
 
 
 def _add_background_music(voice_audio, duration):
@@ -198,6 +292,8 @@ def build_video(audio_path, stock_video_path, script_text,
     print("[video_builder] Starte Video-Produktion...")
 
     _text_cache.clear()
+    global _outro_cache
+    _outro_cache = None
 
     audio = AudioFileClip(audio_path)
     duration = audio.duration
@@ -209,7 +305,6 @@ def build_video(audio_path, stock_video_path, script_text,
 
     # Clips laden und auf 9:16 bringen — natürliche Länge behalten, max 12s pro Clip
     MAX_CLIP_DURATION = 12.0
-    FADE_DURATION = 0.4
 
     segments = []
     seg_durations = []
@@ -228,15 +323,46 @@ def build_video(audio_path, stock_video_path, script_text,
         segments = segments * repeats
         seg_durations = seg_durations * repeats
 
-    # Kumulative Startzeiten pro Segment berechnen
-    seg_starts = [0.0]
+    # Segmente starten nach dem 2s Intro
+    seg_starts = [INTRO_DURATION]
     for d in seg_durations[:-1]:
         seg_starts.append(seg_starts[-1] + d)
 
     wt = word_timings or []
 
+    # Outro-Start berechnen
+    outro_start = duration - OUTRO_DURATION
+
     def make_frame(t):
-        # Aktuelles Segment direkt bestimmen — kein Seek in concatenate_videoclips
+        # Untertitel für diesen Zeitpunkt bestimmen
+        display_text, active_word = _get_text_and_active(t, wt, script_text, duration)
+
+        # --- OUTRO (letzte 2 Sekunden) ---
+        if t >= outro_start:
+            frame = _render_outro_frame().copy()
+            t_in_outro = t - outro_start
+            if t_in_outro < FADE_DURATION:
+                frame = frame * (t_in_outro / FADE_DURATION)
+            return frame.astype(np.uint8)
+
+        # --- INTRO (erste 2 Sekunden): schwarzer Frame ---
+        if t < INTRO_DURATION:
+            frame = np.zeros((VIDEO_HEIGHT, VIDEO_WIDTH, 3), dtype=np.float32)
+            # Text trotzdem einblenden
+            if display_text:
+                text_img = _render_text_image(display_text, active_word)
+                text_arr = np.array(text_img)
+                alpha = text_arr[:, :, 3:4].astype(np.float32) / 255.0
+                rgb = text_arr[:, :, :3].astype(np.float32)
+                th, tw = text_arr.shape[:2]
+                x = (VIDEO_WIDTH - tw) // 2
+                y = int(VIDEO_HEIGHT * TEXT_Y_RATIO)
+                if 0 <= y and y + th <= VIDEO_HEIGHT and 0 <= x and x + tw <= VIDEO_WIDTH:
+                    region = frame[y:y + th, x:x + tw]
+                    frame[y:y + th, x:x + tw] = region * (1.0 - alpha) + rgb * alpha
+            return frame.astype(np.uint8)
+
+        # --- NORMALER SEGMENT-FRAME (ab t >= INTRO_DURATION) ---
         seg_idx = 0
         for i in range(len(seg_starts) - 1):
             if t < seg_starts[i + 1]:
@@ -261,7 +387,7 @@ def build_video(audio_path, stock_video_path, script_text,
             brightness = time_until_end / FADE_DURATION
             frame *= brightness
         elif t_in_seg < FADE_DURATION and seg_idx > 0:
-            # Einblenden aus Schwarz
+            # Einblenden aus Schwarz (erster Clip nach Intro bekommt kein Einblenden — Intro ist schon schwarz)
             brightness = t_in_seg / FADE_DURATION
             frame *= brightness
 
@@ -269,9 +395,9 @@ def build_video(audio_path, stock_video_path, script_text,
         frame *= 0.65
 
         # Aktives Wort einbrennen
-        text = _get_active_text(t, wt, script_text, duration)
-        if text:
-            text_arr = np.array(_render_text_image(text))
+        if display_text:
+            text_img = _render_text_image(display_text, active_word)
+            text_arr = np.array(text_img)
             alpha = text_arr[:, :, 3:4].astype(np.float32) / 255.0
             rgb = text_arr[:, :, :3].astype(np.float32)
             th, tw = text_arr.shape[:2]

@@ -112,6 +112,68 @@ NICHES = {
             "satellite earth", "cave exploration", "black hole space", "crystal minerals", "city timelapse",
         ],
     },
+    "psychologie": {
+        "name_de": "Psychologie",
+        "name_en": "Psychology",
+        "prompt_de": (
+            _HOOK_REGEL_DE + " "
+            "Du bist ein Experte für viralen deutschsprachigen Psychologie-Content auf TikTok. "
+            "Schreib ein Skript für ein 60-Sekunden Faceless-Video über einen faszinierenden "
+            "psychologischen Effekt, Denkfehler oder Verhaltensphänomen. "
+            "Regeln: Starte mit einem Beispiel das jeder kennt aber niemand versteht. "
+            "Erkläre den Effekt einfach. Kurze Sätze. "
+            "Ende mit: 'Folg mir für mehr Psychologie-Fakten.' "
+            "Schreib NUR den gesprochenen Text, keine Regieanweisungen."
+        ),
+        "prompt_en": (
+            _HOOK_REGEL_EN + " "
+            "You are an expert in viral English psychology content on TikTok. "
+            "Write a script for a 60-second faceless video about a fascinating psychological effect, "
+            "cognitive bias, or behavioral phenomenon. "
+            "Rules: Start with an example everyone knows but nobody understands. "
+            "Explain the effect simply. Short sentences. "
+            "End with: 'Follow me for more psychology facts.' "
+            "Write ONLY the spoken text, no stage directions."
+        ),
+        "pexels_keywords": [
+            "brain thinking", "human behavior", "crowd people", "mirror reflection", "mind meditation",
+            "social interaction", "decision making", "stress anxiety", "happy emotion", "eye contact",
+            "body language", "subconscious dream", "memory neural", "fear dark", "confidence walk",
+            "manipulation power", "dopamine reward", "sleep psychology", "group dynamics", "self control",
+            "anxiety breathing", "therapy session", "emotional intelligence", "habit formation", "attention focus",
+        ],
+    },
+    "finanzen": {
+        "name_de": "Finanzen & Geld",
+        "name_en": "Finance & Money",
+        "prompt_de": (
+            _HOOK_REGEL_DE + " "
+            "Du bist ein Experte für viralen deutschsprachigen Finanz-Content auf TikTok. "
+            "Schreib ein Skript für ein 60-Sekunden Faceless-Video über einen Geld-Trick, "
+            "Finanz-Fehler den die meisten machen, oder einen überraschenden Fakt über Reichtum. "
+            "Regeln: Starte mit einem Fakt der schockiert oder neidisch macht. "
+            "Erkläre praktisch und konkret. Kurze Sätze. "
+            "Ende mit: 'Folg mir für mehr Geld-Wissen.' "
+            "Schreib NUR den gesprochenen Text, keine Regieanweisungen."
+        ),
+        "prompt_en": (
+            _HOOK_REGEL_EN + " "
+            "You are an expert in viral English finance content on TikTok. "
+            "Write a script for a 60-second faceless video about a money trick, "
+            "financial mistake most people make, or a surprising fact about wealth. "
+            "Rules: Start with a fact that shocks or creates envy. "
+            "Be practical and concrete. Short sentences. "
+            "End with: 'Follow me for more money knowledge.' "
+            "Write ONLY the spoken text, no stage directions."
+        ),
+        "pexels_keywords": [
+            "money cash", "stock market", "luxury lifestyle", "cryptocurrency bitcoin", "rich mansion",
+            "bank vault", "credit card", "real estate", "gold bars", "businessman suit",
+            "investment chart", "dollar bills", "luxury car", "trading screen", "financial freedom",
+            "wallet empty", "debt stress", "compound interest", "passive income", "startup office",
+            "shopping mall", "saving money", "poverty contrast", "wealth success", "financial planning",
+        ],
+    },
 }
 
 # Ausgabe-Pfade

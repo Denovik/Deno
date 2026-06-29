@@ -1,10 +1,32 @@
 import os
+import re
 import anthropic
 from datetime import datetime
 from config import ANTHROPIC_API_KEY, NICHES, SCRIPTS_DIR
 
 
-def _get_recent_scripts(niche: str, language: str, count: int = 15) -> list[str]:
+def _remove_emojis(text):
+    """Entfernt Emojis aus dem Text für sauberes Video-Rendering."""
+    # Breites Unicode-Pattern für Emojis
+    emoji_pattern = re.compile(
+        "["
+        "\U0001F600-\U0001F64F"  # Emoticons
+        "\U0001F300-\U0001F5FF"  # Symbole & Piktogramme
+        "\U0001F680-\U0001F6FF"  # Transport & Karten
+        "\U0001F1E0-\U0001F1FF"  # Flaggen
+        "\U00002700-\U000027BF"  # Dingbats
+        "\U0001F900-\U0001F9FF"  # Ergänzende Symbole
+        "\U00002600-\U000026FF"  # Verschiedene Symbole
+        "\U0001FA00-\U0001FA6F"  # Schach-Symbole
+        "\U0001FA70-\U0001FAFF"  # Weitere Symbole
+        "\U00002500-\U00002BEF"  # Verschiedene technische Zeichen
+        "]+",
+        flags=re.UNICODE
+    )
+    return emoji_pattern.sub("", text).strip()
+
+
+def _get_recent_scripts(niche, language, count=15):
     """Liest die letzten N Skripte dieser Nische+Sprache aus dem Skript-Ordner."""
     if not os.path.exists(SCRIPTS_DIR):
         return []
@@ -26,7 +48,39 @@ def _get_recent_scripts(niche: str, language: str, count: int = 15) -> list[str]
     return scripts
 
 
-def generate_script(niche: str, language: str) -> str:
+def extract_keywords(script_text, niche, language):
+    """Ruft Claude auf und gibt 4 passende Pexels-Keywords für das Skript zurück."""
+    try:
+        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+        prompt = (
+            "Lies dieses Video-Skript und gib mir 4 konkrete englische Suchbegriffe für Pexels Stock-Videos zurück, "
+            "die visuell zum Inhalt passen. Nur die Begriffe, kommagetrennt, keine Erklärung. "
+            "Beispiel: 'money cash, luxury car, city night, success businessman'\n\n"
+            f"Skript:\n{script_text}"
+        )
+        message = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=100,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = message.content[0].text.strip()
+        keywords = [kw.strip() for kw in raw.split(",") if kw.strip()]
+        # Sicherstellen dass wir 4 Keywords haben
+        if len(keywords) >= 1:
+            print(f"[script_generator] B-Roll Keywords: {keywords[:4]}")
+            return keywords[:4]
+    except Exception as e:
+        print(f"[script_generator] Keyword-Extraktion fehlgeschlagen, nutze Nischen-Fallback: {e}")
+
+    # Fallback: zufällige Nischen-Keywords
+    from config import NICHES
+    import random
+    fallback = NICHES[niche]["pexels_keywords"].copy()
+    random.shuffle(fallback)
+    return fallback[:4]
+
+
+def generate_script(niche, language):
     """Generiert ein Skript per Claude API. Gibt den fertigen Text zurück."""
     if niche not in NICHES:
         raise ValueError(f"Unbekannte Nische: {niche}. Verfügbar: {list(NICHES.keys())}")
@@ -45,6 +99,15 @@ def generate_script(niche: str, language: str) -> str:
             avoid_block += f"\n[{i}] {s[:200]}...\n"
         system_prompt = system_prompt + avoid_block
 
+    # Trending-Thema holen und in den Prompt einbauen
+    try:
+        from trends_client import get_trending_topic
+        topic = get_trending_topic(niche)
+        if topic:
+            system_prompt = system_prompt + f"\n\nAKTUELLES THEMA: Schreib das Skript über dieses spezifische Thema: '{topic}'"
+    except Exception:
+        pass  # Kein Trending-Thema → freie Themenwahl
+
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
     message = client.messages.create(
@@ -57,6 +120,11 @@ def generate_script(niche: str, language: str) -> str:
     )
 
     script_text = message.content[0].text.strip()
+
+    # Emojis aus dem Skript-Text entfernen (für sauberes Video-Rendering)
+    script_text = _remove_emojis(script_text)
+    # Mehrfache Leerzeichen bereinigen die durch Emoji-Entfernung entstehen können
+    script_text = re.sub(r"  +", " ", script_text).strip()
 
     # Skript speichern
     os.makedirs(SCRIPTS_DIR, exist_ok=True)
@@ -72,7 +140,7 @@ def generate_script(niche: str, language: str) -> str:
     return script_text
 
 
-def generate_title(script_text: str, niche: str, language: str) -> str:
+def generate_title(script_text, niche, language):
     """Erzeugt einen packenden, content-bezogenen Titel fürs Video (ohne Datum/Zahlencodes)."""
     if language == "de":
         instruction = (
