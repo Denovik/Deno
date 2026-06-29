@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 from config import NICHES, LANGUAGES, POSTING_SCHEDULE, OUTPUTS_DIR, TEMP_DIR, BASE_DIR
-from script_generator import generate_script, generate_title, extract_keywords, generate_hashtags
+from script_generator import generate_script, generate_quickfire_script, generate_title, extract_keywords, generate_hashtags
 from voice_generator import generate_voice
 from pexels_client import get_stock_video, get_stock_videos
 from video_builder import build_video, generate_thumbnail
@@ -28,16 +28,20 @@ from poster_tiktok import post_to_tiktok
 from performance_tracker import log_video, build_weighted_combos
 
 
-def make_one_video(niche, language, dry_run=False, ab_variant=None):
+def make_one_video(niche, language, dry_run=False, ab_variant=None, quickfire=False):
     """Produziert und postet ein Video. Gibt Ergebnis-Dict zurück."""
     ts = datetime.now().strftime("%Y-%m-%d_%H%M")
-    label = f"{ts}-{niche}-{language}"
+    format_suffix = "-quickfire" if quickfire else ""
+    label = f"{ts}-{niche}-{language}{format_suffix}"
     print(f"\n{'='*50}")
-    print(f"[jarvis] Starte Video: {label}")
+    print(f"[jarvis] Starte Video: {label}{' (Quickfire 30s)' if quickfire else ''}")
     print(f"{'='*50}")
 
     # 1. Skript generieren
-    script = generate_script(niche, language)
+    if quickfire:
+        script = generate_quickfire_script(niche, language)
+    else:
+        script = generate_script(niche, language)
     print(f"[jarvis] Skript ({len(script)} Zeichen) fertig.")
 
     if dry_run:
@@ -152,7 +156,8 @@ def run_daily(count=1, dry_run=False):
             all_results.extend(results)
             ab_done_this_run = True
         else:
-            result = make_one_video(niche, lang, dry_run=dry_run)
+            use_quickfire = random.random() < 0.30
+            result = make_one_video(niche, lang, dry_run=dry_run, quickfire=use_quickfire)
             all_results.append(result)
 
     # Tages-Report ausgeben

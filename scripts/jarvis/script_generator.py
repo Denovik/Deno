@@ -2,7 +2,7 @@ import os
 import re
 import anthropic
 from datetime import datetime
-from config import ANTHROPIC_API_KEY, NICHES, SCRIPTS_DIR
+from config import ANTHROPIC_API_KEY, NICHES, SCRIPTS_DIR, QUICKFIRE_PROMPTS
 
 
 def _remove_emojis(text):
@@ -141,6 +141,60 @@ def generate_script(niche, language):
         f.write(script_text)
 
     print(f"[script_generator] Skript gespeichert: {filename}")
+    return script_text
+
+
+def generate_quickfire_script(niche, language):
+    """Generiert ein 30-Sekunden Quickfire-Skript per Claude API. Gibt den fertigen Text zurück."""
+    if niche not in NICHES:
+        raise ValueError(f"Unbekannte Nische: {niche}. Verfügbar: {list(NICHES.keys())}")
+    if language not in ["de", "en"]:
+        raise ValueError(f"Unbekannte Sprache: {language}. Verfügbar: de, en")
+
+    niche_config = NICHES[niche]
+    # Nischen-Kontext: nur die ersten 200 Zeichen (kein langer Retention-Block)
+    niche_context = niche_config[f"prompt_{language}"][:200]
+    system_prompt = QUICKFIRE_PROMPTS[language] + "\n\n" + niche_context
+
+    # Trending-Thema holen und in den Prompt einbauen
+    try:
+        from trends_client import get_trending_topic
+        topic = get_trending_topic(niche)
+        if topic:
+            system_prompt = system_prompt + f"\n\nAKTUELLES THEMA: Schreib das Skript über dieses spezifische Thema: '{topic}'"
+    except Exception:
+        pass
+
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=256,
+        messages=[
+            {"role": "user", "content": "Schreib jetzt das Quickfire-Skript." if language == "de" else "Write the quickfire script now."}
+        ],
+        system=system_prompt,
+    )
+
+    script_text = message.content[0].text.strip()
+
+    # Emojis und Sonderzeichen bereinigen
+    script_text = _remove_emojis(script_text)
+    script_text = re.sub(r"\s*—\s*", " ", script_text)
+    script_text = re.sub(r"\s*–\s*", " ", script_text)
+    script_text = re.sub(r"  +", " ", script_text).strip()
+
+    # Skript speichern mit -quickfire Suffix
+    os.makedirs(SCRIPTS_DIR, exist_ok=True)
+    date_str = datetime.now().strftime("%Y-%m-%d-%H%M")
+    filename = f"{date_str}-{niche}-{language}-quickfire.txt"
+    filepath = os.path.join(SCRIPTS_DIR, filename)
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(f"Nische: {niche} | Sprache: {language} | Format: quickfire | Erstellt: {datetime.now()}\n")
+        f.write("=" * 60 + "\n")
+        f.write(script_text)
+
+    print(f"[script_generator] Quickfire-Skript gespeichert: {filename}")
     return script_text
 
 

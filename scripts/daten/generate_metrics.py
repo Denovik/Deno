@@ -100,6 +100,34 @@ def section_youtube(conn):
     return lines
 
 
+def section_youtube_monetization(conn):
+    """YouTube Partner Program Fortschritt."""
+    if not table_exists(conn, "youtube_daily"):
+        return []
+    row = query_one(conn, "SELECT * FROM youtube_daily ORDER BY date DESC LIMIT 1")
+    if not row:
+        return []
+
+    YPP_SUBSCRIBERS_THRESHOLD = 500
+    YPP_WATCHTIME_THRESHOLD = 3000  # Stunden
+
+    subscribers = row.get("subscribers") or 0
+    watchtime = row.get("watchtime_hours_est") or 0
+
+    sub_pct = min(100, round(subscribers / YPP_SUBSCRIBERS_THRESHOLD * 100, 1))
+    wt_pct = min(100, round(watchtime / YPP_WATCHTIME_THRESHOLD * 100, 1))
+    overall_pct = round((sub_pct + wt_pct) / 2, 1)
+
+    lines = [
+        "## YouTube Monetarisierung",
+        f"- Abonnenten: {subscribers:,} / {YPP_SUBSCRIBERS_THRESHOLD:,} (YPP-Schwelle) — {sub_pct}%",
+        f"- Watchtime (geschätzt): {watchtime:,.0f} / {YPP_WATCHTIME_THRESHOLD:,} Stunden — {wt_pct}%",
+        f"- Gesamtfortschritt: {overall_pct}%",
+        "",
+    ]
+    return lines
+
+
 def section_instagram(conn):
     """Instagram Konto-Zahlen."""
     if not table_exists(conn, "instagram_daily"):
@@ -121,6 +149,7 @@ def section_instagram(conn):
 
 SECTIONS = [
     section_youtube,
+    section_youtube_monetization,
     section_instagram,
 ]
 

@@ -1,5 +1,6 @@
 import os
 import random
+import datetime
 import anthropic
 from config import ANTHROPIC_API_KEY
 
@@ -32,11 +33,36 @@ TREND_TOPICS = {
 }
 
 
+def get_seasonal_topics() -> dict:
+    """Gibt saisonale Themen basierend auf dem aktuellen Monat zurück."""
+    month = datetime.datetime.now().month
+    seasonal = {
+        1:  {"motivation": ["Neujahrsvorsätze umsetzen", "Januar-Motivation"], "fakten": ["Winterschlaf Fakten", "Kältere Fakten"], "psychologie": ["Frischer Start Psychologie", "Neujahr Gewohnheiten"], "finanzen": ["Jahresbudget planen", "Steuerrückerstattung"]},
+        2:  {"motivation": ["Valentinstag Selbstliebe", "Februar Durchhalten"], "fakten": ["Liebe und Gehirn", "Herzfakten"], "psychologie": ["Liebe Psychologie", "Attachment Styles"], "finanzen": ["Romantik und Geld", "Paar-Finanzen"]},
+        3:  {"motivation": ["Frühling Neuanfang", "März Energie"], "fakten": ["Frühlings-Fakten", "Tag-Nacht-Gleiche"], "psychologie": ["Frühjahrsputz Psychologie", "Saisonale Depression"], "finanzen": ["Steuererklärung", "Frühlings-Sparziele"]},
+        4:  {"motivation": ["Quartalsziele Q2", "April Frische"], "fakten": ["Regen Fakten", "Aprilwetter Wissenschaft"], "psychologie": ["Humor Psychologie", "Lachen Wissenschaft"], "finanzen": ["Q1 Rückblick", "Investieren im Frühling"]},
+        5:  {"motivation": ["Maifeiertag Bedeutung", "Frühlingsenergie"], "fakten": ["Mai Naturphänomene", "Bienen Fakten"], "psychologie": ["Mutterrolle Psychologie", "Familie Bindung"], "finanzen": ["Urlaub finanzieren", "Sommer sparen"]},
+        6:  {"motivation": ["Sommerziele", "Halbzeit Motivation"], "fakten": ["Sommer Fakten", "Sonnenwende"], "psychologie": ["FOMO Sommer", "Ferienpsychologie"], "finanzen": ["Halbjahres-Check", "Urlaub ohne Schulden"]},
+        7:  {"motivation": ["Hochsommer Energie", "Urlaubs-Mindset"], "fakten": ["Hitze Fakten", "Meer Geheimnisse"], "psychologie": ["Urlaubspsychologie", "Erholung Wissenschaft"], "finanzen": ["Urlaubsbudget", "Sommerjobs"]},
+        8:  {"motivation": ["Augustziele", "Back-to-School Mindset"], "fakten": ["August Astronomie", "Schulstart Fakten"], "psychologie": ["Lernen Psychologie", "Konzentration verbessern"], "finanzen": ["Schulkosten", "Herbst vorbereiten"]},
+        9:  {"motivation": ["Herbst Neustart", "Septemberziele"], "fakten": ["Herbst Naturphänomene", "Ernte Fakten"], "psychologie": ["Herbst-Blues", "Saisonwechsel Psychologie"], "finanzen": ["Q3 Abschluss", "Wintervorrat Finanzen"]},
+        10: {"motivation": ["Halloween Angst überwinden", "Oktober Energie"], "fakten": ["Halloween Ursprung", "Herbstfakten"], "psychologie": ["Angst Psychologie", "Dunkelheit und Stimmung"], "finanzen": ["Jahresendplanung", "Weihnachtsbudget starten"]},
+        11: {"motivation": ["Novembermotivation", "Dankbarkeit Mindset"], "fakten": ["Black Friday Psychologie", "November Fakten"], "psychologie": ["Dankbarkeit Wissenschaft", "Winterdepression"], "finanzen": ["Black Friday clever shoppen", "Jahresabschluss Finanzen"]},
+        12: {"motivation": ["Jahresrückblick", "Weihnachtsmotivation"], "fakten": ["Weihnachten Ursprung", "Winter Fakten"], "psychologie": ["Stress Weihnachten", "Jahreswechsel Psychologie"], "finanzen": ["Jahresabschluss", "Neues Jahr Finanzplan"]},
+    }
+    return seasonal.get(month, {})
+
+
 def get_trending_topic(niche: str) -> str:
     """Gibt ein aktuell relevantes Thema für die Nische zurück."""
-    topics = TREND_TOPICS.get(niche, [])
+    topics = list(TREND_TOPICS.get(niche, []))
     if not topics:
         return None
+
+    # Saisonale Themen ergänzen
+    seasonal = get_seasonal_topics()
+    if niche in seasonal:
+        topics = topics + seasonal[niche]
 
     # Claude wählt das überraschendste/interessanteste Thema
     try:

@@ -8,6 +8,7 @@ Erzeugte Tabellen: youtube_daily, youtube_videos
 """
 
 import pickle
+import re
 import sqlite3
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -20,6 +21,11 @@ SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube.readonly",
 ]
+
+# Monetarisierungs-Schwellen tracken
+# YouTube Partner Program: 500 Abonnenten + 3.000 Watchtime-Stunden (oder 3 Mio Shorts-Views)
+YPP_SUBSCRIBERS_THRESHOLD = 500
+YPP_WATCHTIME_THRESHOLD = 3000  # Stunden
 
 
 def _get_youtube_client():
@@ -89,6 +95,19 @@ def collect():
 
         videos = []
         total_views_30d = 0
+        total_watchtime_seconds = 0
+
+        def _parse_duration_seconds(iso_duration):
+            """ISO 8601 Dauer (PT1M30S) in Sekunden umrechnen."""
+            if not iso_duration:
+                return 0
+            m = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", iso_duration)
+            if not m:
+                return 0
+            h = int(m.group(1) or 0)
+            mi = int(m.group(2) or 0)
+            s = int(m.group(3) or 0)
+            return h * 3600 + mi * 60 + s
 
         for i in range(0, len(video_ids), 50):
             batch = video_ids[i:i + 50]
@@ -101,6 +120,10 @@ def collect():
                 vid_stats = item.get("statistics", {})
                 views = int(vid_stats.get("viewCount", 0))
                 total_views_30d += views
+                duration_str = item.get("contentDetails", {}).get("duration", "")
+                duration_sec = _parse_duration_seconds(duration_str)
+                # Geschätzte Watchtime: views × 50% der Video-Dauer (durchschnittliche Completion)
+                total_watchtime_seconds += views * duration_sec * 0.5
                 videos.append({
                     "video_id": item["id"],
                     "title": item["snippet"]["title"],
@@ -108,8 +131,11 @@ def collect():
                     "views": views,
                     "likes": int(vid_stats.get("likeCount", 0)),
                     "comments": int(vid_stats.get("commentCount", 0)),
-                    "duration": item.get("contentDetails", {}).get("duration", ""),
+                    "duration": duration_str,
                 })
+
+        # Watchtime in Stunden (geschätzt aus 30-Tage-Videos)
+        watchtime_hours_est = round(total_watchtime_seconds / 3600, 1)
 
         return {
             "source": "youtube",
@@ -119,6 +145,7 @@ def collect():
                 "videos_30d": videos,
                 "total_views_30d": total_views_30d,
                 "videos_published_30d": len(videos),
+                "watchtime_hours_est": watchtime_hours_est,
             }
         }
 
@@ -136,9 +163,15 @@ def write(conn, result, date):
             total_videos INTEGER,
             views_30d INTEGER,
             videos_published_30d INTEGER,
+            watchtime_hours_est REAL,
             collected_at TEXT
         )
     """)
+    # Migration: watchtime_hours_est Spalte ergänzen falls noch nicht vorhanden
+    try:
+        conn.execute("ALTER TABLE youtube_daily ADD COLUMN watchtime_hours_est REAL")
+    except Exception:
+        pass  # Spalte existiert bereits
     conn.execute("""
         CREATE TABLE IF NOT EXISTS youtube_videos (
             video_id TEXT PRIMARY KEY,
@@ -164,10 +197,11 @@ def write(conn, result, date):
     conn.execute(
         "INSERT OR REPLACE INTO youtube_daily "
         "(date, channel_name, subscribers, total_views, total_videos, "
-        "views_30d, videos_published_30d, collected_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "views_30d, videos_published_30d, watchtime_hours_est, collected_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (date, channel["channel_name"], channel["subscribers"],
          channel["total_views"], channel["total_videos"],
-         data["total_views_30d"], data["videos_published_30d"], collected_at)
+         data["total_views_30d"], data["videos_published_30d"],
+         data.get("watchtime_hours_est"), collected_at)
     )
     records += 1
 

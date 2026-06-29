@@ -186,6 +186,26 @@ NICHES = {
     },
 }
 
+# Quickfire-Prompts (30s — höhere Completion Rate)
+QUICKFIRE_PROMPTS = {
+    "de": (
+        "WICHTIGSTE REGEL: Du schreibst ein 30-SEKUNDEN Skript. Maximal 60 Wörter. "
+        "Kein Wort zu viel. "
+        "Starte mit einem Ein-Satz-Hook der sofort schockiert oder überrascht. "
+        "Dann 2-3 Sätze Kern-Information. "
+        "Ende mit einer Frage die zum Kommentieren animiert. "
+        "Schreib NUR den gesprochenen Text. KEIN Kommentar über die Länge."
+    ),
+    "en": (
+        "MOST IMPORTANT RULE: You are writing a 30-SECOND script. Maximum 60 words. "
+        "No word too many. "
+        "Start with a one-sentence hook that immediately shocks or surprises. "
+        "Then 2-3 sentences of core information. "
+        "End with a question that invites comments. "
+        "Write ONLY the spoken text. NO comment about the length."
+    ),
+}
+
 # Ausgabe-Pfade
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
