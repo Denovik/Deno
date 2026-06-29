@@ -27,10 +27,21 @@ TEXT_Y_RATIO = 0.50
 MAX_TEXT_WIDTH = VIDEO_WIDTH - 60
 
 # Cache pre-rendered text images für Performance
-_text_cache: dict = {}
+_text_cache = {}
 
 
-def _render_text_image(text: str) -> Image.Image:
+def _get_dynamic_font_size(text):
+    """Gibt die passende Schriftgröße basierend auf Textlänge zurück."""
+    length = len(text.strip())
+    if length <= 4:
+        return FONT_SIZE_MAX  # 90
+    elif length <= 8:
+        return 75
+    else:
+        return 60
+
+
+def _render_text_image(text):
     """Rendert Text auf transparentem RGBA-Bild, gibt PIL Image zurück."""
     text = text.replace("\n", " ").replace("\r", " ").strip()
     if not text:
@@ -38,7 +49,8 @@ def _render_text_image(text: str) -> Image.Image:
     if text in _text_cache:
         return _text_cache[text]
 
-    font_size = FONT_SIZE_MAX
+    # Dynamische Schriftgröße basierend auf Textlänge
+    font_size = _get_dynamic_font_size(text)
     font = None
     bbox = None
     while font_size >= 32:
@@ -68,7 +80,7 @@ def _render_text_image(text: str) -> Image.Image:
     return img
 
 
-def _get_active_text(t: float, word_timings: list, script_text: str, duration: float):
+def _get_active_text(t, word_timings, script_text, duration):
     """Gibt das Wort zurück, das zum Zeitpunkt t gesprochen wird."""
     if word_timings and len(word_timings) > 1:
         words = word_timings
@@ -93,8 +105,39 @@ def _get_active_text(t: float, word_timings: list, script_text: str, duration: f
         return None
 
 
-def _make_subtitle_frame(frame: np.ndarray, t: float, word_timings: list,
-                          script_text: str, duration: float) -> np.ndarray:
+def _apply_ken_burns(frame, segment_index, segment_progress):
+    """Wendet Ken-Burns-Effekt auf einen Frame an (Zoom-In bei geraden, Zoom-Out bei ungeraden Segmenten)."""
+    zoom_min = 1.0
+    zoom_max = 1.08
+
+    if segment_index % 2 == 0:
+        # Gerade: Zoom-In (von 1.0 nach 1.08)
+        zoom = zoom_min + (zoom_max - zoom_min) * segment_progress
+    else:
+        # Ungerade: Zoom-Out (von 1.08 nach 1.0)
+        zoom = zoom_max - (zoom_max - zoom_min) * segment_progress
+
+    if abs(zoom - 1.0) < 0.001:
+        return frame
+
+    h, w = frame.shape[:2]
+    new_h = int(h * zoom)
+    new_w = int(w * zoom)
+
+    # Bild vergrößern mit PIL für bessere Qualität
+    pil_img = Image.fromarray(frame.astype(np.uint8))
+    pil_img = pil_img.resize((new_w, new_h), Image.BILINEAR)
+    zoomed = np.array(pil_img).astype(np.float32)
+
+    # Auf VIDEO_WIDTH x VIDEO_HEIGHT zentriert croppen
+    y_start = (new_h - h) // 2
+    x_start = (new_w - w) // 2
+    cropped = zoomed[y_start:y_start + h, x_start:x_start + w]
+
+    return cropped
+
+
+def _make_subtitle_frame(frame, t, word_timings, script_text, duration):
     """Blendet das aktive Wort direkt in einen RGB-Frame ein."""
     text = _get_active_text(t, word_timings, script_text, duration)
     if not text:
@@ -149,8 +192,8 @@ def _fit_to_916(clip):
     return clip
 
 
-def build_video(audio_path: str, stock_video_path, script_text: str,
-                output_path: str, word_timings: list = None) -> str:
+def build_video(audio_path, stock_video_path, script_text,
+                output_path, word_timings=None):
     """Baut fertiges 9:16 Video. stock_video_path kann ein Pfad oder eine Liste von Pfaden sein."""
     print("[video_builder] Starte Video-Produktion...")
 
@@ -162,44 +205,80 @@ def build_video(audio_path: str, stock_video_path, script_text: str,
     # Hintergrundmusik leise dazumischen (falls vorhanden)
     audio = _add_background_music(audio, duration)
 
-    # Mehrere Stock-Videos zu einem Hintergrund zusammensetzen
     paths = stock_video_path if isinstance(stock_video_path, list) else [stock_video_path]
-    clip_duration = duration / len(paths)  # Jedes Video bekommt gleichviel Zeit
+
+    # Clips laden und auf 9:16 bringen — natürliche Länge behalten, max 12s pro Clip
+    MAX_CLIP_DURATION = 12.0
+    FADE_DURATION = 0.4
 
     segments = []
+    seg_durations = []
     for p in paths:
         c = VideoFileClip(p)
         c = _fit_to_916(c)
-        # Clip auf seinen Zeitslot kürzen (loopen wenn zu kurz)
-        if c.duration < clip_duration:
-            loops = int(clip_duration / c.duration) + 1
-            c = concatenate_videoclips([c] * loops)
-        c = c.subclipped(0, clip_duration)
+        seg_dur = min(c.duration, MAX_CLIP_DURATION)
+        c = c.subclipped(0, seg_dur)
         segments.append(c)
+        seg_durations.append(seg_dur)
 
-    stock = concatenate_videoclips(segments) if len(segments) > 1 else segments[0]
+    # Falls Gesamtlänge kürzer als Audio: Sequenz wiederholen (nicht einzelne Clips loopen)
+    total_footage = sum(seg_durations)
+    if total_footage < duration:
+        repeats = int(duration / total_footage) + 1
+        segments = segments * repeats
+        seg_durations = seg_durations * repeats
+
+    # Kumulative Startzeiten pro Segment berechnen
+    seg_starts = [0.0]
+    for d in seg_durations[:-1]:
+        seg_starts.append(seg_starts[-1] + d)
 
     wt = word_timings or []
 
     def make_frame(t):
-        # Hintergrund-Frame holen (numpy array, shape: H x W x 3)
-        frame = stock.get_frame(t).copy().astype(np.float32)
+        # Aktuelles Segment direkt bestimmen — kein Seek in concatenate_videoclips
+        seg_idx = 0
+        for i in range(len(seg_starts) - 1):
+            if t < seg_starts[i + 1]:
+                seg_idx = i
+                break
+        else:
+            seg_idx = len(seg_starts) - 1
 
-        # Dunkles Overlay: einfach mit numpy multiplizieren
+        t_in_seg = t - seg_starts[seg_idx]
+        seg_dur = seg_durations[seg_idx]
+        t_in_seg = max(0.0, min(t_in_seg, seg_dur - 0.02))
+        seg_progress = t_in_seg / seg_dur if seg_dur > 0 else 0.0
+
+        # Frame direkt aus dem Segment-Clip holen (kein Seek über gesamte Kette)
+        frame = segments[seg_idx].get_frame(t_in_seg).copy().astype(np.float32)
+        frame = _apply_ken_burns(frame, seg_idx, seg_progress)
+
+        # Übergangs-Fade: direkt aus dem nächsten Segment-Clip lesen
+        time_until_next = seg_dur - t_in_seg
+        if time_until_next < FADE_DURATION and seg_idx < len(segments) - 1:
+            alpha_next = 1.0 - (time_until_next / FADE_DURATION)
+            t_in_next = min(FADE_DURATION - time_until_next, seg_durations[seg_idx + 1] - 0.02)
+            t_in_next = max(0.0, t_in_next)
+            next_frame = segments[seg_idx + 1].get_frame(t_in_next).copy().astype(np.float32)
+            next_frame = _apply_ken_burns(next_frame, seg_idx + 1, t_in_next / seg_durations[seg_idx + 1])
+            frame = frame * (1.0 - alpha_next) + next_frame * alpha_next
+
+        # Dunkles Overlay
         frame *= 0.65
 
         # Aktives Wort einbrennen
         text = _get_active_text(t, wt, script_text, duration)
         if text:
-            text_arr = np.array(_render_text_image(text))  # H x W x 4 (RGBA)
+            text_arr = np.array(_render_text_image(text))
             alpha = text_arr[:, :, 3:4].astype(np.float32) / 255.0
             rgb = text_arr[:, :, :3].astype(np.float32)
             th, tw = text_arr.shape[:2]
             x = (VIDEO_WIDTH - tw) // 2
             y = int(VIDEO_HEIGHT * TEXT_Y_RATIO)
-            # Alpha-Composite nur auf den relevanten Ausschnitt
-            region = frame[y:y + th, x:x + tw]
-            frame[y:y + th, x:x + tw] = region * (1.0 - alpha) + rgb * alpha
+            if 0 <= y and y + th <= VIDEO_HEIGHT and 0 <= x and x + tw <= VIDEO_WIDTH:
+                region = frame[y:y + th, x:x + tw]
+                frame[y:y + th, x:x + tw] = region * (1.0 - alpha) + rgb * alpha
 
         return frame.astype(np.uint8)
 
