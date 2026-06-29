@@ -34,12 +34,31 @@ POSTING_SCHEDULE = {
     "youtube": ["15:00"],
 }
 
+_HOOK_REGEL_DE = (
+    "WICHTIGSTE REGEL: Die ersten 3 Sekunden entscheiden alles. "
+    "Starte mit einer provokativen Frage ODER einem Schock-Statement das sofort neugierig macht. "
+    "Beispiele: 'Was wäre, wenn alles was du über X glaubst, falsch ist?' oder "
+    "'Die meisten Menschen machen diesen einen Fehler ihr ganzes Leben lang.' "
+    "Vermeide generische Einstiege wie 'Wusstest du dass', 'Hey', 'Heute zeige ich dir'. "
+    "Schreib den gesprochenen Text OHNE Emojis. Kurze, kraftvolle Sätze."
+)
+
+_HOOK_REGEL_EN = (
+    "MOST IMPORTANT RULE: The first 3 seconds decide everything. "
+    "Start with a provocative question OR a shock statement that instantly creates curiosity. "
+    "Examples: 'What if everything you believe about X is completely wrong?' or "
+    "'Most people make this one mistake their entire lives.' "
+    "Avoid generic openings like 'Did you know', 'Hey', 'Today I will show you'. "
+    "Write the spoken text WITHOUT emojis. Short, powerful sentences."
+)
+
 # Nischen-Konfiguration
 NICHES = {
     "motivation": {
         "name_de": "Motivation",
         "name_en": "Motivation",
         "prompt_de": (
+            _HOOK_REGEL_DE + " "
             "Du bist ein Experte für viralen deutschsprachigen Motivations-Content auf TikTok. "
             "Schreib ein Skript für ein 60-Sekunden Faceless-Video. "
             "Regeln: Starte DIREKT mit einem starken Hook-Satz (keine Begrüßung, kein 'Hey'). "
@@ -48,6 +67,7 @@ NICHES = {
             "Schreib NUR den gesprochenen Text, keine Regieanweisungen, keine Klammern."
         ),
         "prompt_en": (
+            _HOOK_REGEL_EN + " "
             "You are an expert in viral English motivational content on TikTok. "
             "Write a script for a 60-second faceless video. "
             "Rules: Start DIRECTLY with a strong hook sentence (no greeting, no 'Hey'). "
@@ -67,17 +87,19 @@ NICHES = {
         "name_de": "Fakten & Wissen",
         "name_en": "Facts & Knowledge",
         "prompt_de": (
+            _HOOK_REGEL_DE + " "
             "Du bist ein Experte für viralen deutschsprachigen Fakten-Content auf TikTok. "
             "Schreib ein Skript für ein 60-Sekunden Faceless-Video mit 4-5 überraschenden Fakten. "
-            "Regeln: Starte mit 'Wusstest du, dass...' oder einem verblüffenden Fakt. "
+            "Regeln: Starte mit einem verblüffenden Fakt oder einer Schock-Aussage. "
             "Jeder Fakt soll überraschen oder schockieren. Kurze Sätze. "
             "Ende mit: 'Folg mir für mehr erstaunliche Fakten.' "
             "Schreib NUR den gesprochenen Text, keine Regieanweisungen."
         ),
         "prompt_en": (
+            _HOOK_REGEL_EN + " "
             "You are an expert in viral English facts content on TikTok. "
             "Write a script for a 60-second faceless video with 4-5 surprising facts. "
-            "Rules: Start with 'Did you know that...' or a mind-blowing fact. "
+            "Rules: Start with a mind-blowing fact or a shocking statement. "
             "Each fact should surprise or shock. Short sentences. "
             "End with: 'Follow me for more amazing facts.' "
             "Write ONLY the spoken text, no stage directions."

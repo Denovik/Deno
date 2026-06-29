@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 from config import NICHES, LANGUAGES, POSTING_SCHEDULE, OUTPUTS_DIR, TEMP_DIR, BASE_DIR
-from script_generator import generate_script, generate_title
+from script_generator import generate_script, generate_title, extract_keywords
 from voice_generator import generate_voice
 from pexels_client import get_stock_video, get_stock_videos
 from video_builder import build_video
@@ -27,7 +27,7 @@ from poster_instagram import post_to_instagram
 from poster_tiktok import post_to_tiktok
 
 
-def make_one_video(niche: str, language: str, dry_run: bool = False) -> dict:
+def make_one_video(niche, language, dry_run=False):
     """Produziert und postet ein Video. Gibt Ergebnis-Dict zurück."""
     ts = datetime.now().strftime("%Y-%m-%d_%H%M")
     label = f"{ts}-{niche}-{language}"
@@ -46,14 +46,17 @@ def make_one_video(niche: str, language: str, dry_run: bool = False) -> dict:
     # 2. Stimme generieren (gibt audio_path + Wort-Timestamps zurück)
     audio_path, word_timings = generate_voice(script, language)
 
-    # 3. Mehrere Hintergrund-Videos holen (wechseln alle ~15 Sek)
-    stock_path = get_stock_videos(niche, count=4)
+    # 3. B-Roll Keywords aus Skript-Inhalt extrahieren
+    broll_keywords = extract_keywords(script, niche, language)
 
-    # 4. Video bauen
+    # 4. Mehrere Hintergrund-Videos holen (wechseln alle ~10 Sek) — mit Skript-Keywords
+    stock_path = get_stock_videos(niche, count=6, keywords=broll_keywords)
+
+    # 5. Video bauen
     output_path = os.path.join(OUTPUTS_DIR, "videos", f"{label}.mp4")
     video_path = build_video(audio_path, stock_path, script, output_path, word_timings)
 
-    # 5. Titel und Beschreibung
+    # 6. Titel und Beschreibung
     title = generate_title(script, niche, language)
     print(f"[jarvis] Titel: {title}")
     description = f"{script[:500]}\n\n#shorts #motivation #fakten #wissen"
@@ -61,7 +64,7 @@ def make_one_video(niche: str, language: str, dry_run: bool = False) -> dict:
 
     results = {"label": label, "video_path": video_path}
 
-    # 6. Auf Plattformen posten
+    # 7. Auf Plattformen posten
     try:
         vid_id = upload_to_youtube(video_path, title, description, tags)
         results["youtube"] = vid_id
@@ -83,11 +86,25 @@ def make_one_video(niche: str, language: str, dry_run: bool = False) -> dict:
         print(f"[jarvis] TikTok fehlgeschlagen: {e}")
         results["tiktok"] = f"FEHLER: {e}"
 
-    # 7. Temp-Dateien aufräumen
-    for path in [audio_path, stock_path]:
+    # 8. Temp-Dateien aufräumen
+    for path in [audio_path]:
         try:
             if path and os.path.exists(path):
                 os.remove(path)
+        except Exception:
+            pass
+    # Stock-Videos sind eine Liste
+    if isinstance(stock_path, list):
+        for p in stock_path:
+            try:
+                if p and os.path.exists(p):
+                    os.remove(p)
+            except Exception:
+                pass
+    else:
+        try:
+            if stock_path and os.path.exists(stock_path):
+                os.remove(stock_path)
         except Exception:
             pass
 
@@ -95,7 +112,7 @@ def make_one_video(niche: str, language: str, dry_run: bool = False) -> dict:
     return results
 
 
-def run_daily(count: int = 4, dry_run: bool = False):
+def run_daily(count=4, dry_run=False):
     """Produziert `count` Videos mit gemischten Nischen und Sprachen."""
     # 70% Deutsch, 30% Englisch
     combos = [(n, "de") for n in NICHES.keys()] * 7 + [(n, "en") for n in NICHES.keys()] * 3
