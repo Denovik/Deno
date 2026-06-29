@@ -57,11 +57,15 @@ def _fetch_one_video(query, niche):
     date_str = datetime.now().strftime("%Y%m%d-%H%M%S")
     video_path = os.path.join(TEMP_DIR, f"stock-{niche}-{date_str}-{query[:10].replace(' ','-')}.mp4")
     print(f"[pexels_client] Lade Video herunter: {query} ({chosen_file.get('height')}p)")
-    r = requests.get(chosen_file["link"], stream=True)
+    r = requests.get(chosen_file["link"], stream=True, timeout=60)
     with open(video_path, "wb") as f:
-        for chunk in r.iter_content(chunk_size=8192):
+        for chunk in r.iter_content(chunk_size=65536):
             f.write(chunk)
-    print(f"[pexels_client] Stock-Video gespeichert: {os.path.basename(video_path)}")
+    file_size = os.path.getsize(video_path)
+    if file_size < 500_000:
+        os.remove(video_path)
+        raise RuntimeError(f"Video zu klein ({file_size} bytes) — Download fehlgeschlagen")
+    print(f"[pexels_client] Stock-Video gespeichert: {os.path.basename(video_path)} ({file_size // 1024}KB)")
     return video_path
 
 
