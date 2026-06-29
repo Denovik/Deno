@@ -161,57 +161,30 @@ def _get_text_and_active(t, word_timings, script_text, duration):
         return None, None
 
 
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+
+
 def _render_outro_frame():
-    """Rendert den Outro-Frame mit MINDWAVE Branding. Gecacht."""
+    """Rendert den Outro-Frame mit dem MINDWAVE-Logo. Gecacht."""
     global _outro_cache
     if _outro_cache is not None:
         return _outro_cache
 
-    frame = np.zeros((VIDEO_HEIGHT, VIDEO_WIDTH, 3), dtype=np.float32)
-    img = Image.fromarray(frame.astype(np.uint8), "RGB")
-    draw = ImageDraw.Draw(img)
+    # Schwarzer Hintergrund
+    bg = Image.new("RGB", (VIDEO_WIDTH, VIDEO_HEIGHT), (0, 0, 0))
 
-    # MINDWAVE — groß, Magenta
-    try:
-        font_big = ImageFont.truetype(FONT_PATH, 120)
-        font_small = ImageFont.truetype(FONT_PATH, 50)
-    except Exception:
-        font_big = ImageFont.load_default()
-        font_small = font_big
+    if os.path.exists(LOGO_PATH):
+        logo = Image.open(LOGO_PATH).convert("RGBA")
+        # Logo auf 80% der Breite skalieren, zentriert
+        max_w = int(VIDEO_WIDTH * 0.80)
+        ratio = max_w / logo.width
+        new_h = int(logo.height * ratio)
+        logo = logo.resize((max_w, new_h), Image.LANCZOS)
+        x = (VIDEO_WIDTH - max_w) // 2
+        y = (VIDEO_HEIGHT - new_h) // 2
+        bg.paste(logo, (x, y), logo)
 
-    # "MINDWAVE" zentriert
-    text_main = "MINDWAVE"
-    bbox_main = draw.textbbox((0, 0), text_main, font=font_big, stroke_width=STROKE_WIDTH)
-    w_main = bbox_main[2] - bbox_main[0]
-    x_main = (VIDEO_WIDTH - w_main) // 2
-    y_main = VIDEO_HEIGHT // 2 - 100
-
-    draw.text(
-        (x_main - bbox_main[0], y_main - bbox_main[1]),
-        text_main,
-        font=font_big,
-        fill=TEXT_COLOR,
-        stroke_width=STROKE_WIDTH,
-        stroke_fill=STROKE_COLOR,
-    )
-
-    # "@mindwaves" darunter, Weiß
-    text_sub = "@mindwaves"
-    bbox_sub = draw.textbbox((0, 0), text_sub, font=font_small, stroke_width=STROKE_WIDTH)
-    w_sub = bbox_sub[2] - bbox_sub[0]
-    x_sub = (VIDEO_WIDTH - w_sub) // 2
-    y_sub = y_main + (bbox_main[3] - bbox_main[1]) + 40
-
-    draw.text(
-        (x_sub - bbox_sub[0], y_sub - bbox_sub[1]),
-        text_sub,
-        font=font_small,
-        fill=(255, 255, 255),
-        stroke_width=STROKE_WIDTH,
-        stroke_fill=STROKE_COLOR,
-    )
-
-    _outro_cache = np.array(img).astype(np.float32)
+    _outro_cache = np.array(bg).astype(np.float32)
     return _outro_cache
 
 
