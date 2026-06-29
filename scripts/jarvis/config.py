@@ -41,6 +41,11 @@ _HOOK_REGEL_DE = (
     "'Die meisten Menschen machen diesen einen Fehler ihr ganzes Leben lang.' "
     "Vermeide generische Einstiege wie 'Wusstest du dass', 'Hey', 'Heute zeige ich dir'. "
     "Schreib den gesprochenen Text OHNE Emojis. Kurze, kraftvolle Sätze."
+    "RETENTION-REGELN: "
+    "(1) Offene Schleife: Kündige im ersten Satz etwas an, das du erst am Ende auflöst. Beispiel: 'Einer dieser Fakten hat mein Leben verändert — welcher, kommt am Ende.' "
+    "(2) Muster-Unterbrechung in der Mitte: Ein Satz der überrascht oder einen Perspektivwechsel einleitet. Beispiel: 'Aber hier kommt der Teil, den die wenigsten kennen.' oder 'Und jetzt wird es seltsam.' "
+    "(3) Belohnung am Ende: Der letzte inhaltliche Satz löst die offene Schleife auf und fühlt sich wie eine echte Erkenntnis an. "
+    "(4) Spannungsbogen: Aufbau → Eskalation → Auflösung. Jeder Satz baut auf dem vorherigen auf. "
 )
 
 _HOOK_REGEL_EN = (
@@ -50,6 +55,11 @@ _HOOK_REGEL_EN = (
     "'Most people make this one mistake their entire lives.' "
     "Avoid generic openings like 'Did you know', 'Hey', 'Today I will show you'. "
     "Write the spoken text WITHOUT emojis. Short, powerful sentences."
+    "RETENTION RULES: "
+    "(1) Open loop: In the first sentence, tease something you only resolve at the end. Example: 'One of these facts changed my life — you'll find out which one at the end.' "
+    "(2) Pattern interrupt in the middle: A sentence that surprises or shifts perspective. Example: 'But here's the part most people don't know.' or 'And now it gets weird.' "
+    "(3) Payoff at the end: The last content sentence resolves the open loop and feels like a real insight. "
+    "(4) Tension arc: Setup → Escalation → Resolution. Each sentence builds on the previous one. "
 )
 
 # Nischen-Konfiguration

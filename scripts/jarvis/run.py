@@ -51,7 +51,7 @@ def make_one_video(niche, language, dry_run=False, ab_variant=None):
     broll_keywords = extract_keywords(script, niche, language)
 
     # 4. Mehrere Hintergrund-Videos holen (wechseln alle ~10 Sek) — mit Skript-Keywords
-    stock_path = get_stock_videos(niche, count=6, keywords=broll_keywords)
+    stock_path = get_stock_videos(niche, count=8, keywords=broll_keywords)
 
     # 5. Video bauen
     output_path = os.path.join(OUTPUTS_DIR, "videos", f"{label}.mp4")

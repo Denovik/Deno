@@ -94,9 +94,10 @@ def generate_script(niche, language):
     # Letzte Skripte laden und als Kontext mitgeben
     recent = _get_recent_scripts(niche, language)
     if recent:
-        avoid_block = "\n\nWICHTIG: Diese Themen und Einstiege wurden bereits verwendet — NICHT wiederholen, komplett neues Thema wählen:\n"
+        avoid_block = "\n\nDiese Themen wurden bereits produziert — wähle ein völlig anderes Thema, erwähne diese Liste NICHT im Skript:\n"
         for i, s in enumerate(recent, 1):
             avoid_block += f"\n[{i}] {s[:200]}...\n"
+        avoid_block += "\nSchreib das neue Skript direkt, ohne Kommentar über die Themenwahl."
         system_prompt = system_prompt + avoid_block
 
     # Trending-Thema holen und in den Prompt einbauen

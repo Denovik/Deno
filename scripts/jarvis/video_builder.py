@@ -28,7 +28,7 @@ MAX_TEXT_WIDTH = VIDEO_WIDTH - 60
 
 INTRO_DURATION = 2.0
 OUTRO_DURATION = 2.0
-FADE_DURATION = 0.4
+FADE_DURATION = 0.25
 
 # Cache pre-rendered text images für Performance
 # Key: (text, active_word) Tuple
@@ -189,7 +189,7 @@ def _render_outro_frame():
 def _apply_ken_burns(frame, segment_index, segment_progress):
     """Wendet Ken-Burns-Effekt auf einen Frame an (Zoom-In bei geraden, Zoom-Out bei ungeraden Segmenten)."""
     zoom_min = 1.0
-    zoom_max = 1.08
+    zoom_max = 1.12
 
     if segment_index % 2 == 0:
         # Gerade: Zoom-In (von 1.0 nach 1.08)
@@ -353,7 +353,28 @@ def build_video(audio_path, stock_video_path, script_text,
 
         # Frame direkt aus dem Segment-Clip holen (kein Seek über gesamte Kette)
         frame = segments[seg_idx].get_frame(t_in_seg).copy().astype(np.float32)
-        frame = _apply_ken_burns(frame, seg_idx, seg_progress)
+
+        # Zoom-Punch: erste 0.15s jedes Clips — kurzer Scale-Up für Impact
+        PUNCH_DURATION = 0.15
+        if t_in_seg < PUNCH_DURATION and seg_idx > 0:
+            # Zoom von 1.06 runter auf 1.0 (Einschlag-Effekt)
+            punch_progress = t_in_seg / PUNCH_DURATION
+            punch_zoom = 1.06 * (1.0 - punch_progress) + 1.0 * punch_progress
+            frame = _apply_ken_burns(frame, seg_idx, seg_progress)
+            # Extra Zoom-Punch drüberlegen
+            if punch_zoom > 1.001:
+                h, w = frame.shape[:2]
+                new_h = int(h * punch_zoom)
+                new_w = int(w * punch_zoom)
+                from PIL import Image as _PIL
+                pil = _PIL.fromarray(frame.astype(np.uint8))
+                pil = pil.resize((new_w, new_h), _PIL.BILINEAR)
+                zoomed = np.array(pil).astype(np.float32)
+                y_start = (new_h - h) // 2
+                x_start = (new_w - w) // 2
+                frame = zoomed[y_start:y_start+h, x_start:x_start+w]
+        else:
+            frame = _apply_ken_burns(frame, seg_idx, seg_progress)
 
         # Dip-to-Black Übergang: nur ein Clip gleichzeitig, kein Seeking-Konflikt
         time_until_end = seg_dur - t_in_seg
