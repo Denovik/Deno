@@ -220,7 +220,7 @@ def generate_hashtags(script_text, niche, language):
             messages=[{"role": "user", "content": prompt}],
         )
         raw = message.content[0].text.strip()
-        tags = [t.strip().lstrip("#") for t in raw.split(",") if t.strip()]
+        tags = [t.strip().lstrip("#").replace(" ", "") for t in raw.split(",") if t.strip()]
         result = " ".join(f"#{t}" for t in tags[:15] if t)
         print(f"[script_generator] Hashtags: {result[:80]}...")
         return result
