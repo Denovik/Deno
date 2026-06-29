@@ -193,14 +193,24 @@ def build_video(audio_path: str, stock_video_path: str, script_text: str,
     final = VideoClip(make_frame, duration=duration).with_audio(audio)
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    # Instagram-kompatible Einstellungen: H.264 Main Profile, yuv420p, AAC
     final.write_videofile(
         output_path,
         fps=VIDEO_FPS,
         codec="libx264",
         audio_codec="aac",
+        audio_bitrate="192k",
         temp_audiofile=output_path + ".temp.m4a",
         remove_temp=True,
         logger=None,
+        ffmpeg_params=[
+            "-profile:v", "main",
+            "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
+            "-b:v", "5000k",
+            "-maxrate", "5000k",
+            "-bufsize", "10000k",
+        ],
     )
 
     print(f"[video_builder] Video fertig: {os.path.basename(output_path)}")
