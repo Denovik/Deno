@@ -175,14 +175,12 @@ def _render_outro_frame():
 
     if os.path.exists(LOGO_PATH):
         logo = Image.open(LOGO_PATH).convert("RGBA")
-        # Logo auf 80% der Breite skalieren, zentriert
-        max_w = int(VIDEO_WIDTH * 0.80)
-        ratio = max_w / logo.width
-        new_h = int(logo.height * ratio)
-        logo = logo.resize((max_w, new_h), Image.LANCZOS)
-        x = (VIDEO_WIDTH - max_w) // 2
+        # Logo auf volle Breite skalieren (kein Rand links/rechts)
+        new_h = int(logo.height * VIDEO_WIDTH / logo.width)
+        logo = logo.resize((VIDEO_WIDTH, new_h), Image.LANCZOS)
+        # Vertikal zentrieren
         y = (VIDEO_HEIGHT - new_h) // 2
-        bg.paste(logo, (x, y), logo)
+        bg.paste(logo, (0, y), logo)
 
     _outro_cache = np.array(bg).astype(np.float32)
     return _outro_cache
@@ -310,13 +308,13 @@ def build_video(audio_path, stock_video_path, script_text,
         # Untertitel für diesen Zeitpunkt bestimmen
         display_text, active_word = _get_text_and_active(t, wt, script_text, duration)
 
-        # --- OUTRO (letzte 2 Sekunden) ---
+        # --- OUTRO (letzte 2 Sekunden): kein Text, nur Logo ---
         if t >= outro_start:
             frame = _render_outro_frame().copy()
             t_in_outro = t - outro_start
             if t_in_outro < FADE_DURATION:
                 frame = frame * (t_in_outro / FADE_DURATION)
-            return frame.astype(np.uint8)
+            return frame.astype(np.uint8)  # kein Text
 
         # --- INTRO (erste 2 Sekunden): schwarzer Frame ---
         if t < INTRO_DURATION:
