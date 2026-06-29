@@ -294,8 +294,8 @@ def build_video(audio_path, stock_video_path, script_text,
         segments = segments * repeats
         seg_durations = seg_durations * repeats
 
-    # Segmente starten nach dem 2s Intro
-    seg_starts = [INTRO_DURATION]
+    # Segmente starten direkt bei 0
+    seg_starts = [0.0]
     for d in seg_durations[:-1]:
         seg_starts.append(seg_starts[-1] + d)
 
@@ -320,24 +320,7 @@ def build_video(audio_path, stock_video_path, script_text,
                 frame = frame * (t_in_outro / FADE_DURATION)
             return frame.astype(np.uint8)  # kein Text
 
-        # --- INTRO (erste 2 Sekunden): schwarzer Frame ---
-        if t < INTRO_DURATION:
-            frame = np.zeros((VIDEO_HEIGHT, VIDEO_WIDTH, 3), dtype=np.float32)
-            # Text trotzdem einblenden
-            if display_text:
-                text_img = _render_text_image(display_text, active_word)
-                text_arr = np.array(text_img)
-                alpha = text_arr[:, :, 3:4].astype(np.float32) / 255.0
-                rgb = text_arr[:, :, :3].astype(np.float32)
-                th, tw = text_arr.shape[:2]
-                x = (VIDEO_WIDTH - tw) // 2
-                y = int(VIDEO_HEIGHT * TEXT_Y_RATIO)
-                if 0 <= y and y + th <= VIDEO_HEIGHT and 0 <= x and x + tw <= VIDEO_WIDTH:
-                    region = frame[y:y + th, x:x + tw]
-                    frame[y:y + th, x:x + tw] = region * (1.0 - alpha) + rgb * alpha
-            return frame.astype(np.uint8)
-
-        # --- NORMALER SEGMENT-FRAME (ab t >= INTRO_DURATION) ---
+        # --- NORMALER SEGMENT-FRAME ---
         seg_idx = 0
         for i in range(len(seg_starts) - 1):
             if t < seg_starts[i + 1]:
