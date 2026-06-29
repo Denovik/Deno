@@ -12,6 +12,14 @@ from config import VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS, BASE_DIR
 MUSIC_DIR = os.path.join(BASE_DIR, "music")
 MUSIC_VOLUME = 0.12   # 12% Lautstärke — Hintergrund, übertönt die Stimme nicht
 
+# Nischen → bevorzugte Musik-Keywords (case-insensitive Dateinamen-Suche)
+NICHE_MUSIC_MOOD = {
+    "motivation": ["heist", "y2k", "energy", "power", "pump"],
+    "fakten": ["documentary", "crime", "mystery", "dark"],
+    "psychologie": ["documentary", "crime", "mystery", "chill"],
+    "finanzen": ["heist", "y2k", "energy", "success"],
+}
+
 _FONT_CANDIDATES = [
     "/System/Library/Fonts/Supplemental/Arial Bold.ttf",   # macOS
     "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",  # Linux
@@ -23,7 +31,8 @@ TEXT_COLOR = (255, 0, 255)       # Magenta
 STROKE_COLOR = (0, 0, 0)
 STROKE_WIDTH = 5
 WORDS_PER_CLIP = 2
-TEXT_Y_RATIO = 0.50
+TEXT_Y_RATIO = 0.50  # Fallback, wird dynamisch überschrieben
+TEXT_Y_POSITIONS = [0.75, 0.12, 0.50]  # Segment 0,3,6: unten | 1,4,7: oben | 2,5: mitte
 MAX_TEXT_WIDTH = VIDEO_WIDTH - 60
 
 INTRO_DURATION = 2.0
@@ -218,8 +227,8 @@ def _apply_ken_burns(frame, segment_index, segment_progress):
     return cropped
 
 
-def _add_background_music(voice_audio, duration):
-    """Mischt eine zufällige Musik aus music/ leise unter die Stimme. Ohne Musik: unverändert."""
+def _add_background_music(voice_audio, duration, niche=None):
+    """Mischt eine zur Nische passende Musik aus music/ leise unter die Stimme. Ohne Musik: unverändert."""
     music_files = (
         glob.glob(os.path.join(MUSIC_DIR, "*.mp3"))
         + glob.glob(os.path.join(MUSIC_DIR, "*.m4a"))
@@ -228,7 +237,19 @@ def _add_background_music(voice_audio, duration):
     if not music_files:
         return voice_audio
 
-    track_path = random.choice(music_files)
+    # Nischen-bevorzugte Musik suchen
+    track_path = None
+    if niche and niche in NICHE_MUSIC_MOOD:
+        keywords = NICHE_MUSIC_MOOD[niche]
+        matching = [
+            f for f in music_files
+            if any(kw in os.path.basename(f).lower() for kw in keywords)
+        ]
+        if matching:
+            track_path = random.choice(matching)
+            print(f"[video_builder] Nischen-Musik ({niche}): {os.path.basename(track_path)}")
+    if track_path is None:
+        track_path = random.choice(music_files)
     music = AudioFileClip(track_path)
 
     # Musik auf Videolänge bringen (loopen falls zu kurz, sonst zuschneiden)
@@ -258,7 +279,7 @@ def _fit_to_916(clip):
 
 
 def build_video(audio_path, stock_video_path, script_text,
-                output_path, word_timings=None):
+                output_path, word_timings=None, niche=None):
     """Baut fertiges 9:16 Video. stock_video_path kann ein Pfad oder eine Liste von Pfaden sein."""
     print("[video_builder] Starte Video-Produktion...")
 
@@ -269,8 +290,8 @@ def build_video(audio_path, stock_video_path, script_text,
     audio = AudioFileClip(audio_path)
     duration = audio.duration
 
-    # Hintergrundmusik leise dazumischen (falls vorhanden)
-    audio = _add_background_music(audio, duration)
+    # Hintergrundmusik leise dazumischen (nischenbasiert falls angegeben)
+    audio = _add_background_music(audio, duration, niche=niche)
 
     paths = stock_video_path if isinstance(stock_video_path, list) else [stock_video_path]
 
@@ -381,7 +402,11 @@ def build_video(audio_path, stock_video_path, script_text,
             rgb = text_arr[:, :, :3].astype(np.float32)
             th, tw = text_arr.shape[:2]
             x = (VIDEO_WIDTH - tw) // 2
-            y = int(VIDEO_HEIGHT * TEXT_Y_RATIO)
+            # Dynamische Y-Position: Segment 0,3,6 → unten | 1,4,7 → oben | 2,5 → mitte
+            text_y_ratio = TEXT_Y_POSITIONS[seg_idx % 3]
+            y = int(VIDEO_HEIGHT * text_y_ratio)
+            # Clamp damit Text nicht aus dem Bild läuft
+            y = max(0, min(y, VIDEO_HEIGHT - th))
             if 0 <= y and y + th <= VIDEO_HEIGHT and 0 <= x and x + tw <= VIDEO_WIDTH:
                 region = frame[y:y + th, x:x + tw]
                 frame[y:y + th, x:x + tw] = region * (1.0 - alpha) + rgb * alpha
@@ -412,4 +437,49 @@ def build_video(audio_path, stock_video_path, script_text,
     )
 
     print(f"[video_builder] Video fertig: {os.path.basename(output_path)}")
+    return output_path
+
+
+def generate_thumbnail(video_path, title, output_path):
+    """Extrahiert Frame bei t=3s, skaliert auf 1280x720 und brennt Titel oben ein. Gibt output_path zurück."""
+    from moviepy import VideoFileClip as _VFC
+    clip = _VFC(video_path)
+    frame = clip.get_frame(min(3.0, clip.duration * 0.05))
+    clip.close()
+
+    img = Image.fromarray(frame.astype(np.uint8)).resize((1280, 720), Image.LANCZOS)
+    draw = ImageDraw.Draw(img)
+
+    try:
+        font = ImageFont.truetype(FONT_PATH, 72)
+    except Exception:
+        font = ImageFont.load_default()
+
+    # Titel umbrechen wenn zu lang
+    words = title.split()
+    lines = []
+    current = []
+    for word in words:
+        current.append(word)
+        test = " ".join(current)
+        bbox = draw.textbbox((0, 0), test, font=font)
+        if bbox[2] - bbox[0] > 1150:
+            if len(current) > 1:
+                lines.append(" ".join(current[:-1]))
+                current = [word]
+            else:
+                lines.append(test)
+                current = []
+    if current:
+        lines.append(" ".join(current))
+
+    y_pos = 30
+    for line in lines[:3]:
+        draw.text((40, y_pos), line, font=font, fill=(255, 255, 255), stroke_width=4, stroke_fill=(0, 0, 0))
+        bbox = draw.textbbox((40, y_pos), line, font=font)
+        y_pos += bbox[3] - bbox[1] + 10
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    img.save(output_path, "JPEG", quality=95)
+    print(f"[video_builder] Thumbnail gespeichert: {os.path.basename(output_path)}")
     return output_path

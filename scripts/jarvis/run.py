@@ -18,10 +18,10 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 from config import NICHES, LANGUAGES, POSTING_SCHEDULE, OUTPUTS_DIR, TEMP_DIR, BASE_DIR
-from script_generator import generate_script, generate_title, extract_keywords
+from script_generator import generate_script, generate_title, extract_keywords, generate_hashtags
 from voice_generator import generate_voice
 from pexels_client import get_stock_video, get_stock_videos
-from video_builder import build_video
+from video_builder import build_video, generate_thumbnail
 from poster_youtube import upload_to_youtube
 from poster_instagram import post_to_instagram
 from poster_tiktok import post_to_tiktok
@@ -55,13 +55,22 @@ def make_one_video(niche, language, dry_run=False, ab_variant=None):
 
     # 5. Video bauen
     output_path = os.path.join(OUTPUTS_DIR, "videos", f"{label}.mp4")
-    video_path = build_video(audio_path, stock_path, script, output_path, word_timings)
+    video_path = build_video(audio_path, stock_path, script, output_path, word_timings, niche=niche)
 
-    # 6. Titel und Beschreibung
+    # 6. Titel, Hashtags und Beschreibung
     title = generate_title(script, niche, language)
     print(f"[jarvis] Titel: {title}")
-    description = f"{script[:500]}\n\n#shorts #motivation #fakten #wissen"
+    hashtags = generate_hashtags(script, niche, language)
+    description = f"{script[:300]}\n\n{hashtags}"
     tags = ["motivation", "fakten", "wissen", "deutsch", "english", "viral", "shorts"]
+
+    # 6b. Thumbnail generieren
+    thumb_path = os.path.join(OUTPUTS_DIR, "videos", f"{label}-thumb.jpg")
+    try:
+        generate_thumbnail(video_path, title, thumb_path)
+    except Exception as e:
+        print(f"[jarvis] Thumbnail-Generierung fehlgeschlagen (nicht kritisch): {e}")
+        thumb_path = None
 
     results = {"label": label, "video_path": video_path}
 
@@ -70,14 +79,15 @@ def make_one_video(niche, language, dry_run=False, ab_variant=None):
     instagram_id = None
 
     try:
-        youtube_id = upload_to_youtube(video_path, title, description, tags)
+        youtube_id = upload_to_youtube(video_path, title, description, tags, thumbnail_path=thumb_path)
         results["youtube"] = youtube_id
     except Exception as e:
         print(f"[jarvis] YouTube fehlgeschlagen: {e}")
         results["youtube"] = f"FEHLER: {e}"
 
+    instagram_caption = f"{title}\n\n{hashtags}"
     try:
-        instagram_id = post_to_instagram(video_path, title, language, niche)
+        instagram_id = post_to_instagram(video_path, instagram_caption, language, niche)
         results["instagram"] = instagram_id
     except Exception as e:
         print(f"[jarvis] Instagram fehlgeschlagen: {e}")

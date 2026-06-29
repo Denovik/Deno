@@ -6,7 +6,10 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from config import YOUTUBE_CLIENT_SECRET_PATH, BASE_DIR
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtubepartner",
+]
 TOKEN_PATH = os.path.join(BASE_DIR, "credentials", "youtube_token.pickle")
 
 
@@ -35,7 +38,7 @@ def _get_youtube_client():
     return build("youtube", "v3", credentials=creds)
 
 
-def upload_to_youtube(video_path: str, title: str, description: str, tags: list) -> str:
+def upload_to_youtube(video_path: str, title: str, description: str, tags: list, thumbnail_path: str = None) -> str:
     """Lädt Video zu YouTube hoch. Gibt Video-ID zurück."""
     print(f"[poster_youtube] Lade hoch: {title}")
     youtube = _get_youtube_client()
@@ -58,4 +61,16 @@ def upload_to_youtube(video_path: str, title: str, description: str, tags: list)
     response = request.execute()
     video_id = response["id"]
     print(f"[poster_youtube] Hochgeladen: https://youtube.com/shorts/{video_id}")
+
+    # Thumbnail hochladen (optional)
+    if thumbnail_path and os.path.exists(thumbnail_path):
+        try:
+            youtube.thumbnails().set(
+                videoId=video_id,
+                media_body=MediaFileUpload(thumbnail_path, mimetype="image/jpeg"),
+            ).execute()
+            print(f"[poster_youtube] Thumbnail gesetzt")
+        except Exception as e:
+            print(f"[poster_youtube] Thumbnail fehlgeschlagen (nicht kritisch): {e}")
+
     return video_id

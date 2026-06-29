@@ -144,6 +144,45 @@ def generate_script(niche, language):
     return script_text
 
 
+def generate_hashtags(script_text, niche, language):
+    """Generiert 15 trendende Hashtags für TikTok/Instagram. Gibt fertigen String zurück."""
+    try:
+        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+        if language == "de":
+            prompt = (
+                f"Generiere 15 trendende deutsche Hashtags für dieses TikTok/Instagram Video. "
+                f"Nische: {niche}. Nur die Hashtags, kommagetrennt, kein # Zeichen, keine Erklärung.\n\n"
+                f"Skript:\n{script_text[:300]}"
+            )
+        else:
+            prompt = (
+                f"Generate 15 trending English hashtags for this TikTok/Instagram video. "
+                f"Niche: {niche}. Only hashtags, comma-separated, no # symbol, no explanation.\n\n"
+                f"Script:\n{script_text[:300]}"
+            )
+        message = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=200,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = message.content[0].text.strip()
+        tags = [t.strip().lstrip("#") for t in raw.split(",") if t.strip()]
+        result = " ".join(f"#{t}" for t in tags[:15] if t)
+        print(f"[script_generator] Hashtags: {result[:80]}...")
+        return result
+    except Exception as e:
+        print(f"[script_generator] Hashtag-Generierung fehlgeschlagen, nutze Fallback: {e}")
+
+    # Fallback: generische Hashtags basierend auf Nische
+    fallbacks = {
+        "motivation": "#motivation #erfolg #mindset #inspiration #selbstverbesserung #ziele #durchhalten #winner #mindsetcoach #motiviert #positiv #wachstum #stärke #fokus #viral",
+        "fakten": "#fakten #wissen #lernen #interessant #wissenschaft #erstaunlich #facts #knowledge #bildung #schule #neugier #entdecken #unglaublich #wow #viral",
+        "psychologie": "#psychologie #mentalhealth #gedanken #verhalten #psychologiefakten #geist #bewusstsein #persönlichkeit #manipulation #körpersprache #psychologietricks #mindset #sozialpsychologie #emotional #viral",
+        "finanzen": "#finanzen #geld #investieren #passiveseinkommen #reich #finanzfreiheit #sparen #aktien #krypto #finanztipps #geldtipps #reichtum #finanzwissen #money #viral",
+    }
+    return fallbacks.get(niche, "#shorts #viral #trending #foryou #fyp #tiktok #instagram #reels #wissen #motivation")
+
+
 def generate_title(script_text, niche, language):
     """Erzeugt einen packenden, content-bezogenen Titel fürs Video (ohne Datum/Zahlencodes)."""
     if language == "de":
