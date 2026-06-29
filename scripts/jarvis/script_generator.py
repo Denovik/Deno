@@ -124,7 +124,10 @@ def generate_script(niche, language):
 
     # Emojis aus dem Skript-Text entfernen (für sauberes Video-Rendering)
     script_text = _remove_emojis(script_text)
-    # Mehrfache Leerzeichen bereinigen die durch Emoji-Entfernung entstehen können
+    # Gedankenstriche und Bindestriche zwischen Sätzen entfernen
+    script_text = re.sub(r"\s*—\s*", " ", script_text)
+    script_text = re.sub(r"\s*–\s*", " ", script_text)
+    # Mehrfache Leerzeichen bereinigen
     script_text = re.sub(r"  +", " ", script_text).strip()
 
     # Skript speichern
