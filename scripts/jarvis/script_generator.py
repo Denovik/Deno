@@ -63,8 +63,8 @@ def extract_keywords(script_text, niche, language):
             max_tokens=100,
             messages=[{"role": "user", "content": prompt}],
         )
-        raw = message.content[0].text.strip()
-        keywords = [kw.strip() for kw in raw.split(",") if kw.strip()]
+        raw = message.content[0].text.strip().strip("`")
+        keywords = [kw.strip().strip("`").strip("'\"") for kw in raw.split(",") if kw.strip().strip("`")]
         # Sicherstellen dass wir 4 Keywords haben
         if len(keywords) >= 1:
             print(f"[script_generator] B-Roll Keywords: {keywords[:4]}")

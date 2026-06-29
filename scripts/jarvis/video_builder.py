@@ -301,8 +301,12 @@ def build_video(audio_path, stock_video_path, script_text,
 
     wt = word_timings or []
 
-    # Outro-Start berechnen
-    outro_start = duration - OUTRO_DURATION
+    # Outro startet nach dem letzten gesprochenen Wort
+    if wt:
+        last_word_end = wt[-1].get("end", duration - OUTRO_DURATION)
+    else:
+        last_word_end = duration - OUTRO_DURATION
+    outro_start = min(last_word_end, duration - OUTRO_DURATION)
 
     def make_frame(t):
         # Untertitel für diesen Zeitpunkt bestimmen
