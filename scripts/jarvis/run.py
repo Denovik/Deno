@@ -20,7 +20,7 @@ load_dotenv(Path(__file__).parent.parent.parent / ".env")
 from config import NICHES, LANGUAGES, POSTING_SCHEDULE, OUTPUTS_DIR, TEMP_DIR, BASE_DIR
 from script_generator import generate_script, generate_title
 from voice_generator import generate_voice
-from pexels_client import get_stock_video
+from pexels_client import get_stock_video, get_stock_videos
 from video_builder import build_video
 from poster_youtube import upload_to_youtube
 from poster_instagram import post_to_instagram
@@ -46,15 +46,8 @@ def make_one_video(niche: str, language: str, dry_run: bool = False) -> dict:
     # 2. Stimme generieren (gibt audio_path + Wort-Timestamps zurück)
     audio_path, word_timings = generate_voice(script, language)
 
-    # 3. Hintergrund-Video holen (eigene Videos bevorzugt, sonst Pexels)
-    import glob
-    bg_files = glob.glob(os.path.join(BASE_DIR, "backgrounds", "*.mp4")) + \
-               glob.glob(os.path.join(BASE_DIR, "backgrounds", "*.mov"))
-    if bg_files:
-        stock_path = random.choice(bg_files)
-        print(f"[jarvis] Hintergrund: {os.path.basename(stock_path)}")
-    else:
-        stock_path = get_stock_video(niche)
+    # 3. Mehrere Hintergrund-Videos holen (wechseln alle ~15 Sek)
+    stock_path = get_stock_videos(niche, count=4)
 
     # 4. Video bauen
     output_path = os.path.join(OUTPUTS_DIR, "videos", f"{label}.mp4")

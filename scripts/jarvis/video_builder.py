@@ -133,9 +133,25 @@ def _add_background_music(voice_audio, duration):
     return CompositeAudioClip([voice_audio, music])
 
 
-def build_video(audio_path: str, stock_video_path: str, script_text: str,
+def _fit_to_916(clip):
+    """Schneidet einen Clip auf exakt 9:16 (1080x1920) zu."""
+    target_ratio = VIDEO_WIDTH / VIDEO_HEIGHT
+    src_ratio = clip.w / clip.h
+    if src_ratio > target_ratio:
+        clip = clip.resized(height=VIDEO_HEIGHT)
+        x_center = (clip.w - VIDEO_WIDTH) // 2
+        clip = clip.cropped(x1=x_center, y1=0, x2=x_center + VIDEO_WIDTH, y2=VIDEO_HEIGHT)
+    else:
+        clip = clip.resized(width=VIDEO_WIDTH)
+        if clip.h > VIDEO_HEIGHT:
+            y_center = (clip.h - VIDEO_HEIGHT) // 2
+            clip = clip.cropped(x1=0, y1=y_center, x2=VIDEO_WIDTH, y2=y_center + VIDEO_HEIGHT)
+    return clip
+
+
+def build_video(audio_path: str, stock_video_path, script_text: str,
                 output_path: str, word_timings: list = None) -> str:
-    """Baut fertiges 9:16 Video aus Audio + Hintergrund + Untertitel."""
+    """Baut fertiges 9:16 Video. stock_video_path kann ein Pfad oder eine Liste von Pfaden sein."""
     print("[video_builder] Starte Video-Produktion...")
 
     _text_cache.clear()
@@ -146,25 +162,22 @@ def build_video(audio_path: str, stock_video_path: str, script_text: str,
     # Hintergrundmusik leise dazumischen (falls vorhanden)
     audio = _add_background_music(audio, duration)
 
-    # Stock-Video laden und anpassen
-    stock = VideoFileClip(stock_video_path)
-    if stock.duration < duration:
-        loops = int(duration / stock.duration) + 1
-        stock = concatenate_videoclips([stock] * loops)
-    stock = stock.subclipped(0, duration)
+    # Mehrere Stock-Videos zu einem Hintergrund zusammensetzen
+    paths = stock_video_path if isinstance(stock_video_path, list) else [stock_video_path]
+    clip_duration = duration / len(paths)  # Jedes Video bekommt gleichviel Zeit
 
-    # Auf 9:16 zuschneiden
-    stock_ratio = stock.w / stock.h
-    target_ratio = VIDEO_WIDTH / VIDEO_HEIGHT
-    if stock_ratio > target_ratio:
-        stock = stock.resized(height=VIDEO_HEIGHT)
-        x_center = (stock.w - VIDEO_WIDTH) // 2
-        stock = stock.cropped(x1=x_center, y1=0, x2=x_center + VIDEO_WIDTH, y2=VIDEO_HEIGHT)
-    else:
-        stock = stock.resized(width=VIDEO_WIDTH)
-        if stock.h > VIDEO_HEIGHT:
-            y_center = (stock.h - VIDEO_HEIGHT) // 2
-            stock = stock.cropped(x1=0, y1=y_center, x2=VIDEO_WIDTH, y2=y_center + VIDEO_HEIGHT)
+    segments = []
+    for p in paths:
+        c = VideoFileClip(p)
+        c = _fit_to_916(c)
+        # Clip auf seinen Zeitslot kürzen (loopen wenn zu kurz)
+        if c.duration < clip_duration:
+            loops = int(clip_duration / c.duration) + 1
+            c = concatenate_videoclips([c] * loops)
+        c = c.subclipped(0, clip_duration)
+        segments.append(c)
+
+    stock = concatenate_videoclips(segments) if len(segments) > 1 else segments[0]
 
     wt = word_timings or []
 
