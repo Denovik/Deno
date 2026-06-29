@@ -40,11 +40,16 @@ _HOOK_REGEL_DE = (
     "Beispiele: 'Was wäre, wenn alles was du über X glaubst, falsch ist?' oder "
     "'Die meisten Menschen machen diesen einen Fehler ihr ganzes Leben lang.' "
     "Vermeide generische Einstiege wie 'Wusstest du dass', 'Hey', 'Heute zeige ich dir'. "
-    "Schreib den gesprochenen Text OHNE Emojis. Kurze, kraftvolle Sätze."
+    "Schreib den gesprochenen Text OHNE Emojis. Kurze, kraftvolle Sätze. "
     "RETENTION-REGELN: "
-    "(1) Offene Schleife: Kündige im ersten Satz etwas an, das du erst am Ende auflöst. Beispiel: 'Einer dieser Fakten hat mein Leben verändert — welcher, kommt am Ende.' "
-    "(2) Muster-Unterbrechung in der Mitte: Ein Satz der überrascht oder einen Perspektivwechsel einleitet. Beispiel: 'Aber hier kommt der Teil, den die wenigsten kennen.' oder 'Und jetzt wird es seltsam.' "
-    "(3) Belohnung am Ende: Der letzte inhaltliche Satz löst die offene Schleife auf und fühlt sich wie eine echte Erkenntnis an. "
+    "(1) OFFENE SCHLEIFE — PFLICHT: Der allererste Satz stellt eine Frage oder verspricht eine Auflösung, die der Zuschauer erst am Ende bekommt. "
+    "Beispiele: 'Die Antwort darauf hat mein Leben verändert. Sie kommt am Ende.' oder "
+    "'Einer dieser Punkte wird dich schockieren. Welcher, erfährst du am Schluss.' "
+    "Der Zuschauer MUSS bis zum Ende schauen, um die Auflösung zu bekommen. "
+    "(2) Muster-Unterbrechung in der Mitte: Ein Satz der überrascht. Beispiel: 'Aber hier kommt der Teil, den die wenigsten kennen.' "
+    "(3) AUFLÖSUNG AM ENDE — PFLICHT: Der vorletzte oder letzte inhaltliche Satz loest die offene Schleife direkt auf. "
+    "Beispiel: Wenn der Hook war 'Einer dieser Fakten hat mein Leben veraendert', dann endet das Skript mit 'Und dieser Fakt war: [konkrete Antwort].' "
+    "Die Aufloesung muss sich wie eine echte Erkenntnis anfuehlen, nicht wie ein leeres Versprechen. "
     "(4) Spannungsbogen: Aufbau → Eskalation → Auflösung. Jeder Satz baut auf dem vorherigen auf. "
 )
 
@@ -54,11 +59,16 @@ _HOOK_REGEL_EN = (
     "Examples: 'What if everything you believe about X is completely wrong?' or "
     "'Most people make this one mistake their entire lives.' "
     "Avoid generic openings like 'Did you know', 'Hey', 'Today I will show you'. "
-    "Write the spoken text WITHOUT emojis. Short, powerful sentences."
+    "Write the spoken text WITHOUT emojis. Short, powerful sentences. "
     "RETENTION RULES: "
-    "(1) Open loop: In the first sentence, tease something you only resolve at the end. Example: 'One of these facts changed my life — you'll find out which one at the end.' "
-    "(2) Pattern interrupt in the middle: A sentence that surprises or shifts perspective. Example: 'But here's the part most people don't know.' or 'And now it gets weird.' "
-    "(3) Payoff at the end: The last content sentence resolves the open loop and feels like a real insight. "
+    "(1) OPEN LOOP — MANDATORY: The very first sentence asks a question or promises a reveal that only comes at the end. "
+    "Examples: 'The answer to this changed my life. I'll tell you at the end.' or "
+    "'One of these points will shock you. You'll find out which one at the end.' "
+    "The viewer MUST watch until the end to get the resolution. "
+    "(2) Pattern interrupt in the middle: A sentence that surprises. Example: 'But here's the part most people don't know.' "
+    "(3) PAYOFF AT THE END — MANDATORY: The second-to-last or last content sentence directly resolves the open loop. "
+    "Example: If the hook was 'One of these facts changed my life', the script ends with 'And that fact was: [concrete answer].' "
+    "The payoff must feel like a real insight, not an empty promise. "
     "(4) Tension arc: Setup → Escalation → Resolution. Each sentence builds on the previous one. "
 )
 
@@ -73,7 +83,7 @@ NICHES = {
             "Schreib ein Skript für ein 60-Sekunden Faceless-Video. "
             "Regeln: Starte DIREKT mit einem starken Hook-Satz (keine Begrüßung, kein 'Hey'). "
             "Nutze kurze, kraftvolle Sätze. Jeder Satz ist maximal 10 Wörter lang. "
-            "Baue Spannung auf. Ende mit: 'Folg mir für mehr.' "
+            "Baue Spannung auf. Ende mit der Aufloesung der offenen Schleife, danach ein kurzer CTA wie 'Folg mir fuer mehr.' "
             "Schreib NUR den gesprochenen Text, keine Regieanweisungen, keine Klammern."
         ),
         "prompt_en": (
@@ -82,7 +92,7 @@ NICHES = {
             "Write a script for a 60-second faceless video. "
             "Rules: Start DIRECTLY with a strong hook sentence (no greeting, no 'Hey'). "
             "Use short, powerful sentences. Maximum 10 words per sentence. "
-            "Build tension. End with: 'Follow me for more.' "
+            "Build tension. End with the resolution of the open loop, then a short CTA like 'Follow me for more.' "
             "Write ONLY the spoken text, no stage directions, no brackets."
         ),
         "pexels_keywords": [
@@ -102,7 +112,7 @@ NICHES = {
             "Schreib ein Skript für ein 60-Sekunden Faceless-Video mit 4-5 überraschenden Fakten. "
             "Regeln: Starte mit einem verblüffenden Fakt oder einer Schock-Aussage. "
             "Jeder Fakt soll überraschen oder schockieren. Kurze Sätze. "
-            "Ende mit: 'Folg mir für mehr erstaunliche Fakten.' "
+            "Ende mit der Aufloesung der offenen Schleife (der schockierendste Fakt kommt am Schluss), danach 'Folg mir fuer mehr.' "
             "Schreib NUR den gesprochenen Text, keine Regieanweisungen."
         ),
         "prompt_en": (
@@ -111,7 +121,7 @@ NICHES = {
             "Write a script for a 60-second faceless video with 4-5 surprising facts. "
             "Rules: Start with a mind-blowing fact or a shocking statement. "
             "Each fact should surprise or shock. Short sentences. "
-            "End with: 'Follow me for more amazing facts.' "
+            "End with the resolution of the open loop (the most shocking fact comes last), then 'Follow me for more.' "
             "Write ONLY the spoken text, no stage directions."
         ),
         "pexels_keywords": [
