@@ -254,15 +254,16 @@ def build_video(audio_path, stock_video_path, script_text,
         frame = segments[seg_idx].get_frame(t_in_seg).copy().astype(np.float32)
         frame = _apply_ken_burns(frame, seg_idx, seg_progress)
 
-        # Übergangs-Fade: direkt aus dem nächsten Segment-Clip lesen
-        time_until_next = seg_dur - t_in_seg
-        if time_until_next < FADE_DURATION and seg_idx < len(segments) - 1:
-            alpha_next = 1.0 - (time_until_next / FADE_DURATION)
-            t_in_next = min(FADE_DURATION - time_until_next, seg_durations[seg_idx + 1] - 0.02)
-            t_in_next = max(0.0, t_in_next)
-            next_frame = segments[seg_idx + 1].get_frame(t_in_next).copy().astype(np.float32)
-            next_frame = _apply_ken_burns(next_frame, seg_idx + 1, t_in_next / seg_durations[seg_idx + 1])
-            frame = frame * (1.0 - alpha_next) + next_frame * alpha_next
+        # Dip-to-Black Übergang: nur ein Clip gleichzeitig, kein Seeking-Konflikt
+        time_until_end = seg_dur - t_in_seg
+        if time_until_end < FADE_DURATION and seg_idx < len(segments) - 1:
+            # Ausblenden zum Schwarz
+            brightness = time_until_end / FADE_DURATION
+            frame *= brightness
+        elif t_in_seg < FADE_DURATION and seg_idx > 0:
+            # Einblenden aus Schwarz
+            brightness = t_in_seg / FADE_DURATION
+            frame *= brightness
 
         # Dunkles Overlay
         frame *= 0.65
