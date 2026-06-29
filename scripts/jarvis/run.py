@@ -65,7 +65,17 @@ def make_one_video(niche, language, dry_run=False, ab_variant=None, quickfire=Fa
     title = generate_title(script, niche, language)
     print(f"[jarvis] Titel: {title}")
     hashtags = generate_hashtags(script, niche, language)
-    description = f"{script[:300]}\n\n{hashtags}"
+
+    # Affiliate-Links pro Nische
+    AMAZON_TAG = "mindwave04-21"
+    AFFILIATE_LINKS = {
+        "motivation": f"📚 Empfohlene Bücher: https://www.amazon.de/s?k=motivation+persönlichkeitsentwicklung&tag={AMAZON_TAG}",
+        "fakten":     f"📚 Mehr Wissen: https://www.amazon.de/s?k=wissen+fakten+bücher&tag={AMAZON_TAG}",
+        "psychologie": f"📚 Psychologie-Bücher: https://www.amazon.de/s?k=psychologie+bücher&tag={AMAZON_TAG}",
+        "finanzen":   f"📚 Finanz-Bücher: https://www.amazon.de/s?k=finanzen+investieren+bücher&tag={AMAZON_TAG}",
+    }
+    affiliate_line = AFFILIATE_LINKS.get(niche, "")
+    description = f"{script[:300]}\n\n{affiliate_line}\n\n{hashtags}"
     tags = ["motivation", "fakten", "wissen", "deutsch", "english", "viral", "shorts"]
 
     # 6b. Thumbnail generieren
