@@ -49,22 +49,35 @@ def _fetch_one_video(query, niche):
         raise RuntimeError(f"Keine Videos für '{query}'")
     video = random.choice(videos[:15])
     video_files = video.get("video_files", [])
-    hd_files = [f for f in video_files if f.get("quality") in ["hd", "sd"] and f.get("height", 0) >= 720]
+    # Obergrenze 1920px Höhe: Endformat ist 1080x1920, 4K-Quellmaterial (oft als "hd"
+    # getaggt, aber bis zu 3840px hoch) überlastet den Decoder beim Videobau ohne
+    # jeden Qualitätsgewinn — siehe Vorfall 2026-06-30 (24.883.200-Byte-Frame-Fehler).
+    hd_files = [
+        f for f in video_files
+        if f.get("quality") in ["hd", "sd"] and 720 <= f.get("height", 0) <= 1920
+    ]
     if not hd_files:
-        hd_files = video_files
+        hd_files = [f for f in video_files if f.get("height", 0) <= 1920] or video_files
     chosen_file = sorted(hd_files, key=lambda f: f.get("height", 0), reverse=True)[0]
     os.makedirs(TEMP_DIR, exist_ok=True)
     date_str = datetime.now().strftime("%Y%m%d-%H%M%S")
     video_path = os.path.join(TEMP_DIR, f"stock-{niche}-{date_str}-{query[:10].replace(' ','-')}.mp4")
     print(f"[pexels_client] Lade Video herunter: {query} ({chosen_file.get('height')}p)")
     r = requests.get(chosen_file["link"], stream=True, timeout=60)
+    expected_size = int(r.headers.get("Content-Length", 0))
     with open(video_path, "wb") as f:
         for chunk in r.iter_content(chunk_size=65536):
             f.write(chunk)
     file_size = os.path.getsize(video_path)
-    if file_size < 500_000:
+    # Mindestgröße UND Vollständigkeits-Check: Pexels liefert Content-Length im Header.
+    # Ohne diesen Vergleich rutschen mittendrin abgebrochene Downloads durch, wenn sie
+    # zufällig über 500KB groß sind, aber trotzdem unvollständig — das produziert später
+    # tausende moviepy-Warnungen statt eines sauberen Fehlers.
+    if file_size < 500_000 or (expected_size > 0 and file_size < expected_size * 0.98):
         os.remove(video_path)
-        raise RuntimeError(f"Video zu klein ({file_size} bytes) — Download fehlgeschlagen")
+        raise RuntimeError(
+            f"Video unvollständig ({file_size} von erwarteten {expected_size} bytes) — Download fehlgeschlagen"
+        )
     print(f"[pexels_client] Stock-Video gespeichert: {os.path.basename(video_path)} ({file_size // 1024}KB)")
     return video_path
 

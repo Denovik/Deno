@@ -4,9 +4,11 @@
 
 ## Datenbank
 
-- **Pfad:** `data/data.db` (SQLite)
+- **Pfad:** `data/data.db` (SQLite) — primär auf dem Server gepflegt (seit 2026-06-30)
+- **Server:** Täglich 08:00 automatisch aktualisiert via Cron auf 167.233.95.3
+- **Lokal spiegeln:** `scp -i ~/.ssh/mindwave_hetzner root@167.233.95.3:/opt/mindwave/jarvis/data/data.db data/data.db`
 - **Verbinden:** `import sqlite3; conn = sqlite3.connect("data/data.db")`
-- **Aktualisieren:** `python scripts/daten/collect.py` (läuft auch täglich um 08:00)
+- **Manuell aktualisieren (lokal):** `python scripts/daten/collect.py`
 - **Kennzahlen regenerieren:** `python scripts/daten/generate_metrics.py`
 
 ---

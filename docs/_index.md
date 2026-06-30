@@ -14,7 +14,7 @@
 
 | Bedingung | Doku | Zusammenfassung |
 |---|---|---|
-| _(Dokus erscheinen hier, sobald du Systeme baust, der /commit Befehl trägt sie automatisch ein)_ | | |
+| Du arbeitest an `personal-os/`, `/personal-prime` oder `personal.db` | `docs/personal-os.md` | Dennis' Leben außerhalb des Business — Ziele, Aufgaben, Wissen, Gesundheit, Finanzen |
 
 ## Integrationen
 

@@ -52,3 +52,10 @@ music/*.wav
 node_modules/
 data/data.db
 data/collect.log
+
+# --- Personal OS (sensible persönliche Daten, bleiben lokal) ---
+personal-os/personal.db
+personal-os/personal.db-journal
+personal-os/personal.db-shm
+personal-os/personal.db-wal
+personal-os/gesundheit-finanzen/finanzen.md

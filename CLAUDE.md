@@ -22,6 +22,8 @@ Das ist der **CEO-GPT von Dennis** — ein vollautomatisiertes KI-System, das Co
 
 Du musst nicht technisch sein. Du musst nichts programmieren können. Du beschreibst, was du brauchst, und dein Mitarbeiter setzt es um.
 
+Neben dem Business gibt es seit Kurzem auch `personal-os/` — Dennis' Leben außerhalb von Mindwave: Ziele, Aufgaben, Wissen, Gesundheit, Finanzen. Eigener Bereich, eigener Sitzungsstart (`/personal-prime`), bewusst getrennt vom Business-Kontext.
+
 ---
 
 ## Kontext-Zusammenfassung
@@ -80,7 +82,8 @@ Wir bauen den Mitarbeiter in Teilen auf. Jeder Teil ist für sich nützlich, und
 │       ├── create-plan.md   # /create-plan: Plan schreiben
 │       ├── implement.md     # /implement: Plan ausführen
 │       ├── share.md         # /share: System weitergeben
-│       └── task-audit.md    # /task-audit: Aufgaben kartieren
+│       ├── task-audit.md    # /task-audit: Aufgaben kartieren
+│       └── personal-prime.md # /personal-prime: Lebens-Sitzung starten
 ├── context/                 # Was dein Mitarbeiter über dich weiß
 │   ├── business-info.md     # Was dein Business macht
 │   ├── personal-info.md     # Wer du bist, deine Rolle
@@ -91,6 +94,13 @@ Wir bauen den Mitarbeiter in Teilen auf. Jeder Teil ist für sich nützlich, und
 │   └── import/              # Dokumente reinwerfen für Mitarbeiter-Analyse
 ├── data/
 │   └── data.db              # SQLite-Datenbank, alle Kennzahlen als Tagesstände
+├── personal-os/              # Dennis' Leben außerhalb des Business
+│   ├── profil.md             # Wer er lebensweit ist
+│   ├── ziele-notizen/        # Persönliche Ziele + laufende Notizen
+│   ├── aufgaben-termine/     # Lebensweite Aufgaben + Routinen
+│   ├── wissen/                # Wissens-Archiv (Bücher, Kurse, Artikel)
+│   ├── gesundheit-finanzen/   # Gesundheit + persönliche Finanzen (lokal, nicht in Git)
+│   └── personal.db            # SQLite, Gesundheit/Finanz/Aufgaben-Historie (lokal)
 ├── module-installs/         # Fähigkeiten zum Einrichten
 ├── plans/                   # Pläne aus /create-plan
 ├── outputs/                 # Fertige Arbeit, Reports, Analysen
@@ -108,13 +118,14 @@ Wir bauen den Mitarbeiter in Teilen auf. Jeder Teil ist für sich nützlich, und
 | `outputs/` | Ergebnisse, Analysen, Reports. |
 | `reference/` | Hilfsdokumente und Vorlagen. |
 | `scripts/` | Automatisierungs-Skripte. Werden mit neuen Fähigkeiten ergänzt. |
-| `scripts/jarvis/` | Jarvis Content Bot — vollautomatische Video-Pipeline für TikTok/Instagram/YouTube. Start: `python3 scripts/jarvis/run.py` |
-| `scripts/daten/` | Daten-Pipeline — holt täglich echte Zahlen von YouTube + Instagram in SQLite-Datenbank + erzeugt `context/group/key-metrics.md`. Läuft automatisch um 08:00. Manuell: `python3 scripts/daten/collect.py` |
-| `data/data.db` | SQLite-Datenbank mit täglichen Tagesständen. Direkte SQL-Abfragen möglich. Schemas in `reference/data-access.md`. |
-| `scripts/intelligenz/` | Performance-Analyse — analysiert Videos/Reels mit Claude, schreibt Bericht nach `outputs/berichte/`. Läuft automatisch jeden Montag 09:00. Manuell: `python3 scripts/intelligenz/analyse.py` |
+| `scripts/jarvis/` | Jarvis Content Bot — vollautomatische Video-Pipeline für TikTok/Instagram/YouTube. **Läuft produktiv auf dem Server (167.233.95.3), täglich 19:00.** Lokaler Start nur für Tests: `python3 scripts/jarvis/run.py`. Deployment: `bash scripts/jarvis/deploy_to_server.sh`. Details: `reference/server-deployment.md` |
+| `scripts/daten/` | Daten-Pipeline — holt täglich echte Zahlen von YouTube + Instagram in SQLite-Datenbank + erzeugt `context/group/key-metrics.md`. **Läuft auf dem Server, täglich 08:00.** Manuell lokal: `python3 scripts/daten/collect.py` |
+| `data/data.db` | SQLite-Datenbank mit täglichen Tagesständen. Primär auf dem Server gepflegt. Lokal spiegeln: `scp -i ~/.ssh/mindwave_hetzner root@167.233.95.3:/opt/mindwave/jarvis/data/data.db data/data.db`. Schemas in `reference/data-access.md`. |
+| `scripts/intelligenz/` | Performance-Analyse — analysiert Videos/Reels mit Claude, schreibt Bericht nach `outputs/berichte/`. **Läuft auf dem Server, montags 09:00.** Manuell: `python3 scripts/intelligenz/analyse.py` |
 | `scripts/jarvis/voice_chat.py` | Jarvis Voice-Interface (Terminal) — mit Jarvis sprechen, er antwortet mit Stimme. Start: `python3 scripts/jarvis/voice_chat.py` (Enter → sprechen → Enter) |
 | `scripts/jarvis/web_app.py` | Jarvis Web-Interface — visueller Arc-Reactor im Browser, händefrei (Jarvis hört selbst, wann du fertig bist). Start: Doppelklick auf `start_jarvis.command` oder `python3 scripts/jarvis/web_app.py`, dann http://localhost:5005 |
 | `shares/` | Fertig verpackte Systeme zum Weitergeben. |
+| `personal-os/` | Dennis' Leben außerhalb des Business — Ziele, Aufgaben, Wissen, Gesundheit, Finanzen. Wird bei `/personal-prime` gelesen. Gesundheit/Finanzen bleiben lokal (nicht in Git). |
 
 ---
 
@@ -147,6 +158,10 @@ Dies ist die Anleitung an dich, den Mitarbeiter. Halt dich daran.
 Lädt den Kontext und macht den Mitarbeiter sitzungsfähig. Liest CLAUDE.md und die `context/`-Dateien. Fasst zusammen, wer du bist, was dein Business macht und was diese Sitzung wahrscheinlich braucht.
 
 Lauf das am Anfang jeder Sitzung.
+
+### /personal-prime
+
+Lädt Dennis' Personal-OS-Kontext (`personal-os/`) — Ziele, Aufgaben, Wissen, Gesundheit, Finanzen. Unabhängig von `/prime`, für Sitzungen über sein Leben statt sein Business.
 
 ### /install [pfad-zur-fähigkeit]
 
@@ -186,8 +201,9 @@ Geführtes Interview, das jede wiederkehrende Aufgabe in deinem Business kartier
 2. Richte den Kontext ein. Lauf `/install module-installs/kontext`. Damit bekommt dein Mitarbeiter sein Gehirn.
 3. Wenn der Kontext steht, lauf `/prime`. Prüf, dass dein Mitarbeiter dein Business verstanden hat.
 4. Bau weiter aus, in dieser Reihenfolge: Daten, Intelligenz, Stimme, Automatisierung, Wachstum.
+5. Optional, wenn du willst: `/personal-prime` befüllt sich nach und nach mit deinem Leben außerhalb des Business — kein Pflichtschritt, kann jederzeit dazukommen.
 
-**Wiederkommer?** `/prime` am Anfang jeder Sitzung.
+**Wiederkommer?** `/prime` am Anfang jeder Business-Sitzung, `/personal-prime` wenn's um dein Leben geht.
 
 ---
 

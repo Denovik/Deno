@@ -8,6 +8,28 @@
 
 ---
 
+## 2026-06-30
+
+### Jarvis-Pipeline auf Hetzner-Server umgezogen
+
+- Pipeline läuft jetzt vollautomatisch auf Server 167.233.95.3 — Mac muss nicht mehr an sein
+- Cron-Zeitplan: Videos 19:00, Daten-Sammlung 08:00, Analyse montags 09:00 (Zeitzone Europe/Berlin)
+- Server-Toolkit: Python 3.14.4, ffmpeg 8.0.1, venv mit allen Paketen, Musik übertragen
+- Zwei Bugs gefixt: 4K-Video-Begrenzung (max 1920p), Download-Vollständigkeits-Check
+- Lokale launchd-Agents deaktiviert (Plist-Dateien als Fallback erhalten)
+- Deployment-Skript: `bash scripts/jarvis/deploy_to_server.sh`
+- Doku: `reference/server-deployment.md`
+- Plan: `plans/2026-06-30-jarvis-server-umzug.md`
+
+### Personal OS aufgebaut
+
+- Neuer Bereich `personal-os/` — Dennis' Leben außerhalb des Mindwave-Business: Profil, Ziele & Notizen, Aufgaben & Termine, Wissens-Archiv, Gesundheit & Finanzen
+- Eigene SQLite-Datenbank `personal-os/personal.db` (Tabellen `health_daily`, `finance_transactions`, `tasks_log`), bewusst getrennt von `data/data.db`
+- Neuer Befehl `/personal-prime` lädt den Personal-OS-Kontext, unabhängig von `/prime`
+- Gesundheits-/Finanzdaten bleiben lokal (gitignored), nicht versioniert
+- `CLAUDE.md` und `docs/_index.md` aktualisiert, Doku unter `docs/personal-os.md`
+- Plan: `plans/2026-06-30-personal-os.md`
+
 ## 2026-06-27
 
 ### Jarvis Web-Interface (visueller Arc-Reactor, händefrei)

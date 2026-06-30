@@ -68,3 +68,12 @@ Solo. Dennis trägt alles allein. Zeit ist vorhanden, Budget ist sehr begrenzt.
 
 
 _Vollständiger Bericht: `outputs/berichte/2026-06-27-performance-analyse.md`_
+
+## Performance-Analyse Mindwave
+
+---
+
+### ✅ Was funktioniert (relativ)
+
+
+_Vollständiger Bericht: `outputs/berichte/2026-06-27-performance-analyse.md`_

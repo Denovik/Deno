@@ -30,3 +30,7 @@ Wenn du fertig gelesen hast, fass kurz zusammen:
 - Knapp, nicht überfrachtet. Der Geschäftsführer will einen Überblick, kein Protokoll.
 - Wenn `context/` noch leer oder dünn ist, sag das ehrlich. Empfiehl `/install module-installs/kontext`, damit das Gehirn deines Mitarbeiters einen echten Stand bekommt.
 - Wenn etwas in den Kontext-Dateien widersprüchlich oder veraltet wirkt, weis darauf hin. Nicht überstimmen, sondern fragen.
+
+## Verwandter Befehl
+
+Für Dennis' Leben außerhalb des Business — Ziele, Aufgaben, Wissen, Gesundheit, Finanzen — gibt es `/personal-prime`. Läuft unabhängig von diesem Befehl, muss nicht jede Sitzung mit aufgerufen werden.
